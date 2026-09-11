@@ -1,0 +1,19 @@
+{
+  "name": "wordle-practice",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A Wordle practice game that runs in the browser.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

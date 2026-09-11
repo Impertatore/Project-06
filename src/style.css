@@ -1,0 +1,563 @@
+/* Colours were picked to meet WCAG 2.1 AA. Tile and key letters are large bold
+   text (3:1); everything else is normal text (4.5:1). */
+:root {
+  --bg: #ffffff;
+  --panel-bg: #ffffff;
+  --text: #1a1a1b;
+  --muted: #57595b;
+  --border: #d3d6da;
+  --tile-border-empty: #d3d6da;
+  --tile-border-filled: #878a8c;
+  --button-bg: #eef0f2;
+  --button-hover: #e0e3e6;
+  --key-bg: #d3d6da;
+  --key-text: #1a1a1b;
+  --correct: #538d4e;
+  --present: #9c8424;
+  --absent: #787c7e;
+  --on-score: #ffffff;
+  --accent: #3a7535;
+  --on-accent: #ffffff;
+  --bar: #5f6264;
+  --danger: #b3261e;
+  --focus: #1f5fcc;
+  --toast-bg: #1a1a1b;
+  --toast-text: #ffffff;
+  --backdrop: rgb(0 0 0 / 0.45);
+
+  --flip-ms: 500ms;
+  --stagger-ms: 250ms;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #121213;
+  --panel-bg: #1e1e20;
+  --text: #f8f8f8;
+  --muted: #b8babd;
+  --border: #3a3a3c;
+  --tile-border-empty: #3a3a3c;
+  --tile-border-filled: #6e7072;
+  --button-bg: #2c2c2e;
+  --button-hover: #3a3a3c;
+  --key-bg: #6e7072;
+  --key-text: #f8f8f8;
+  --absent: #3a3a3c;
+  --on-score: #f8f8f8;
+  --bar: #4f5254;
+  --focus: #8ab4f8;
+  --toast-bg: #f8f8f8;
+  --toast-text: #121213;
+  --backdrop: rgb(0 0 0 / 0.65);
+  color-scheme: dark;
+}
+
+:root[data-contrast='high'] {
+  --correct: #f5793a;
+  --present: #85c0f9;
+  --accent: #f5793a;
+  --on-accent: #1a1a1b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Header ------------------------------------------------------------------ */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.actions button,
+.panel-actions button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--button-bg);
+  font-weight: 600;
+}
+
+.actions button:hover:not(:disabled),
+.panel-actions button:hover {
+  background: var(--button-hover);
+}
+
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* Board ------------------------------------------------------------------- */
+
+#game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 1.5rem 1rem;
+  outline: none;
+}
+
+.board {
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.row.hint-row::after {
+  content: '💡';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0.6rem;
+  font-size: 1.4rem;
+}
+
+.tile {
+  --tile-bg: transparent;
+  --tile-fg: var(--text);
+  --tile-border: var(--tile-border-empty);
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--tile-border);
+  background: var(--tile-bg);
+  color: var(--tile-fg);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.tile[data-state='filled'] {
+  --tile-border: var(--tile-border-filled);
+}
+
+.tile[data-state='correct'],
+.tile[data-state='present'],
+.tile[data-state='absent'] {
+  --tile-fg: var(--on-score);
+}
+
+.tile[data-state='correct'] {
+  --tile-bg: var(--correct);
+  --tile-border: var(--correct);
+}
+
+.tile[data-state='present'] {
+  --tile-bg: var(--present);
+  --tile-border: var(--present);
+}
+
+.tile[data-state='absent'] {
+  --tile-bg: var(--absent);
+  --tile-border: var(--absent);
+}
+
+:root[data-contrast='high'] .tile[data-state='correct'],
+:root[data-contrast='high'] .tile[data-state='present'] {
+  --tile-fg: #1a1a1b;
+}
+
+/* Each tile shows its letter unscored until it has turned halfway. */
+.tile.reveal {
+  animation: flip var(--flip-ms) ease-in-out both;
+  animation-delay: calc(var(--i) * var(--stagger-ms));
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateX(0);
+    background: transparent;
+    color: var(--text);
+    border-color: var(--tile-border-filled);
+  }
+  49.9% {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--tile-border-filled);
+  }
+  50% {
+    transform: rotateX(90deg);
+    background: var(--tile-bg);
+    color: var(--tile-fg);
+    border-color: var(--tile-border);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+
+.row.shake {
+  animation: shake 400ms ease-in-out;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(4px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-6px);
+  }
+  40%,
+  60% {
+    transform: translateX(6px);
+  }
+}
+
+/* Keyboard ---------------------------------------------------------------- */
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, 500px);
+}
+
+.key-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.key {
+  flex: 1;
+  max-width: 44px;
+  height: 58px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--key-bg);
+  color: var(--key-text);
+  font-size: 1.25rem;
+  font-weight: 700;
+  user-select: none;
+}
+
+.key.wide {
+  max-width: 68px;
+  flex: 1.5;
+  font-size: 0.9rem;
+}
+
+.key[data-key='Backspace'] {
+  font-size: 1.4rem;
+}
+
+.key[data-state='correct'] {
+  background: var(--correct);
+  color: var(--on-score);
+}
+
+.key[data-state='present'] {
+  background: var(--present);
+  color: var(--on-score);
+}
+
+.key[data-state='absent'] {
+  background: var(--absent);
+  color: var(--on-score);
+}
+
+:root[data-contrast='high'] .key[data-state='correct'],
+:root[data-contrast='high'] .key[data-state='present'] {
+  color: #1a1a1b;
+}
+
+/* Toast ------------------------------------------------------------------- */
+
+.toast {
+  /* Popovers are centred in the viewport by default. */
+  margin: auto;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  max-width: min(90vw, 28rem);
+  padding: 0.75rem 1.1rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+  /* Never block clicks on the game or a panel underneath. */
+  pointer-events: none;
+}
+
+/* Panels ------------------------------------------------------------------ */
+
+dialog {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-bg);
+  color: var(--text);
+  width: min(92vw, 30rem);
+  max-height: 85vh;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.3);
+}
+
+dialog::backdrop {
+  background: var(--backdrop);
+}
+
+.panel {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.panel h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.close:hover {
+  background: var(--button-hover);
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.panel-actions button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.panel-actions button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+.end-text,
+.confirm-message {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  text-align: center;
+}
+
+.stat dd {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.stat dt {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.distribution {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.distribution li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dist-label {
+  width: 1rem;
+  text-align: right;
+  font-weight: 700;
+}
+
+.dist-bar {
+  min-width: 1.75rem;
+  padding: 0.1rem 0.5rem;
+  background: var(--bar);
+  color: #ffffff;
+  font-weight: 700;
+  text-align: right;
+}
+
+.dist-bar.this-game {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.help p,
+.help li {
+  line-height: 1.5;
+}
+
+.help ul {
+  padding-left: 1.25rem;
+}
+
+.help .legend {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.help .legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.tile.mini {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  font-size: 1.25rem;
+}
+
+.small {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.setting:last-of-type {
+  border-bottom: 0;
+}
+
+.setting span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.setting small {
+  color: var(--muted);
+}
+
+.setting input {
+  width: 2.75rem;
+  height: 1.5rem;
+  flex: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile.reveal,
+  .row.shake {
+    animation: none;
+  }
+}

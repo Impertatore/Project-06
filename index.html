@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Wordle Practice</title>
+    <script>
+      // Apply the saved theme before first paint, so a dark page doesn't flash light.
+      // Same storage key and rules as src/storage.js and applySettings() in src/main.js.
+      try {
+        const s = JSON.parse(localStorage.getItem('wordle-practice.settings') || '{}');
+        const dark = typeof s.darkMode === 'boolean' ? s.darkMode : matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        if (s.highContrast === true) document.documentElement.dataset.contrast = 'high';
+      } catch {}
+    </script>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23538d4e'/><text x='50' y='72' font-size='64' font-family='sans-serif' font-weight='700' text-anchor='middle' fill='white'>W</text></svg>"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Wordle Practice</h1>
+      <nav class="actions" aria-label="Game controls">
+        <button type="button" id="hint-btn">Hint (2)</button>
+        <button type="button" id="stats-btn">Stats</button>
+        <button type="button" id="new-game-btn">New Game</button>
+        <button type="button" id="help-btn">Help</button>
+        <button type="button" id="settings-btn">Settings</button>
+      </nav>
+    </header>
+
+    <main id="game" tabindex="-1" aria-label="Game">
+      <div id="board" class="board" role="group" aria-label="Game board"></div>
+      <div id="keyboard" class="keyboard" role="group" aria-label="On-screen keyboard"></div>
+    </main>
+
+    <!-- Warnings and short notices. A popover sits above open panels. -->
+    <div id="toast" class="toast" popover="manual" aria-hidden="true"></div>
+
+    <!-- Screen reader announcements. -->
+    <div id="announce-polite" class="visually-hidden" aria-live="polite"></div>
+    <div id="announce-assertive" class="visually-hidden" aria-live="assertive"></div>
+
+    <dialog id="end-dialog" aria-labelledby="end-title">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 id="end-title"></h2>
+          <button type="button" class="close" data-close aria-label="Close">×</button>
+        </div>
+        <p id="end-text" class="end-text"></p>
+        <div class="panel-actions">
+          <button type="button" id="end-share-btn" class="primary">Share</button>
+          <button type="button" id="end-new-game-btn">New Game</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="stats-dialog" aria-labelledby="stats-title">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 id="stats-title">Statistics</h2>
+          <button type="button" class="close" data-close aria-label="Close">×</button>
+        </div>
+        <dl id="stat-grid" class="stat-grid"></dl>
+        <h3>Wins by rows used</h3>
+        <ol id="distribution" class="distribution"></ol>
+        <div class="panel-actions">
+          <button type="button" id="stats-share-btn" class="primary" hidden>Share</button>
+          <button type="button" id="reset-stats-btn">Reset statistics</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <div class="panel help">
+        <div class="panel-header">
+          <h2 id="help-title">How to play</h2>
+          <button type="button" class="close" data-close aria-label="Close">×</button>
+        </div>
+        <p>Find the hidden 5-letter word in 6 rows.</p>
+        <ul>
+          <li>Type a word with your keyboard or the on-screen keys, then press Enter.</li>
+          <li>Only real English words are accepted. US and UK spellings both count.</li>
+          <li>After each guess, the tiles change colour to show how close you are.</li>
+        </ul>
+        <h3>Colours</h3>
+        <ul class="legend">
+          <li><span class="tile mini" data-state="correct" aria-hidden="true">W</span><span><strong>Green</strong>: right letter, right place.</span></li>
+          <li><span class="tile mini" data-state="present" aria-hidden="true">I</span><span><strong>Yellow</strong>: the letter is in the word, but in another place.</span></li>
+          <li><span class="tile mini" data-state="absent" aria-hidden="true">U</span><span><strong>Grey</strong>: the letter is not in the word (or not again).</span></li>
+        </ul>
+        <p class="small">High contrast mode uses orange for green and blue for yellow.</p>
+        <h3>Hints</h3>
+        <p>You get 2 hints per game. A hint fills your next row with a word that shares at least one letter with the answer. It keeps your green letters in place and uses all your yellow letters, so you never lose what you have found, and it always finds something new: a new green, or a letter you hadn't found. It uses up that row. You can't use a hint on the last row, and none is given if only the answer would do that.</p>
+        <h3>Hard mode</h3>
+        <p>Green letters must stay in place, and yellow letters must be used, in every later guess. Hard mode can only be changed before your first guess or hint.</p>
+        <h3>Quitting</h3>
+        <p>Pressing New Game during a game, or reloading the page, counts as a loss and a quit in your statistics.</p>
+        <p class="small">
+          Word lists from SCOWL, copyright 2000–2016 Kevin Atkinson.
+          <a href="scowl-copyright.txt" target="_blank">Copyright and permission notice</a>.
+        </p>
+      </div>
+    </dialog>
+
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 id="settings-title">Settings</h2>
+          <button type="button" class="close" data-close aria-label="Close">×</button>
+        </div>
+        <label class="setting">
+          <span>
+            <strong>Hard mode</strong>
+            <small>Revealed letters must be used in later guesses.</small>
+          </span>
+          <input type="checkbox" role="switch" id="hard-mode-switch" />
+        </label>
+        <label class="setting">
+          <span>
+            <strong>Dark mode</strong>
+            <small>Light letters on a dark background.</small>
+          </span>
+          <input type="checkbox" role="switch" id="dark-mode-switch" />
+        </label>
+        <label class="setting">
+          <span>
+            <strong>High contrast</strong>
+            <small>Orange and blue in place of green and yellow.</small>
+          </span>
+          <input type="checkbox" role="switch" id="high-contrast-switch" />
+        </label>
+      </div>
+    </dialog>
+
+    <dialog id="confirm-dialog" aria-labelledby="confirm-message">
+      <form method="dialog" class="panel">
+        <p id="confirm-message" class="confirm-message"></p>
+        <div class="panel-actions">
+          <button value="confirm" id="confirm-ok" class="danger"></button>
+          <button value="cancel" autofocus>Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
