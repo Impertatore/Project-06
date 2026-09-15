@@ -78,7 +78,9 @@ test('partly valid stored statistics keep the valid counts', () => {
 
 test('saved statistics are read back', () => {
   useStorage();
-  const stats = { ...emptyStats(), played: 3, wins: 2, losses: 1, quits: 1, maxStreak: 2, winsByRows: [0, 1, 1, 0, 0, 0] };
+  // Every emptyStats() field is non-zero, so a field dropped on load cannot pass the deepEqual below.
+  const stats = { played: 3, wins: 2, losses: 1, quits: 1, currentStreak: 2, maxStreak: 2, winsByRows: [0, 1, 1, 0, 0, 0], wordCount: 14, hintsUsed: 3 };
+  assert.deepEqual(Object.keys(stats).sort(), Object.keys(emptyStats()).sort());
   saveStats(stats);
   assert.deepEqual(loadStats(), stats);
 });
