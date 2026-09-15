@@ -19,7 +19,7 @@
     "source=wordle-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
   ],
 
-  "postCreateCommand": "sudo chown -R node:node /home/node/.claude node_modules && npm ci && (gh auth setup-git || echo 'WARNING: gh auth setup-git failed - is CAPYBARA_GH_TOKEN set on the host?')",
+  "postCreateCommand": "sudo chown -R node:node /home/node/.claude node_modules && git config --global user.name 'Patrick Andrew Hartnett' && git config --global user.email 'phartnett@sdl.com' && npm ci && (gh auth setup-git || echo 'WARNING: gh auth setup-git failed - is CAPYBARA_GH_TOKEN set on the host?')",
 
   "customizations": {
     "vscode": {
