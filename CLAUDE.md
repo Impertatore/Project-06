@@ -30,6 +30,26 @@ A browser Wordle game built with Vite and plain JavaScript, from
 - Agents run in the dev container (bash). The host shell is pwsh. Pass long
   text to `gh` through files (`--body-file`), not inline or via heredocs.
 
+## Working with agents (for the main chat)
+
+The agents in `.claude/agents/` each own one role: `implementer`, `tester`,
+`reviewer`. When you hand a task to one of them:
+
+- **Relay its result; don't redo its work.** Report its `RESULT` line and
+  what it said. Don't re-run its tests, re-read its diff or repeat its checks
+  to "verify independently". Checking work is the `reviewer`'s job and the
+  human's, and doing it again spends tokens twice.
+- **Never edit files in the main checkout to test something**, not even
+  temporarily. Agents work in worktrees under `.claude-notes/wt/`; if a check
+  needs code changed, it belongs to an agent.
+- **If something in the result looks wrong, say what and why**, and suggest
+  which agent or step should look at it. Don't investigate it yourself unless
+  the human asks.
+- **Don't offer to fix, apply, push or merge on your own initiative.** Suggest
+  the next step in the flow instead: implementer → reviewer → human triage →
+  `/pr-fix` → `/pr-review post` → human merge. The tester can join after
+  the implementer, or run on its own for coverage gaps.
+
 ## Maintenance automation policy
 
 Used by `/triage`, `/pr-review` and `/pr-fix`. A verdict says how much human
