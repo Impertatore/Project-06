@@ -27,7 +27,7 @@ The app needs no internet connection once installed. Supported browsers: current
 
 Set two environment variables **on the host** if you want authenticated `gh` and Claude Code inside the container: `CAPYBARA_GH_TOKEN` and `CAPYBARA_ANTHROPIC_KEY`. The container maps them to `GH_TOKEN` and `ANTHROPIC_API_KEY` through `remoteEnv`. Keep the values on the host only, never in the repository. Neither is needed to build the container or to run the game and its tests: without `CAPYBARA_GH_TOKEN`, `gh auth setup-git` prints a warning during create and `gh` is not authenticated.
 
-Agents work on a branch and open a pull request to `main` for a human to merge. They never push to `main`.
+The conventions agents follow in this repository — branches, pull requests, and who merges — are in [CLAUDE.md](CLAUDE.md).
 
 ## Testing aid
 
