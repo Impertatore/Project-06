@@ -33,10 +33,12 @@ A stop is a valid result. Report it with `RESULT | stopped=<reason>`.
    `main` there.
    ```
    git fetch origin main
-   git worktree add -b <branch> .claude-notes/wt/<branch> origin/main
+   git worktree add -b <branch> .claude-notes/wt/<slug> origin/main
    ```
    Name the branch `issue-<n>-<slug>` for an issue, otherwise
-   `agent/<slug>`. Run every command below from the worktree.
+   `agent/<slug>`. The worktree folder uses just `<slug>`, so a `/` in the
+   branch name doesn't leave an empty parent folder behind. Run every
+   command below from the worktree.
 2. **Logic changes (`src/logic/`, `src/words/`): test first.** Add or change
    a test in `tests/<module>.test.js`, run it with `node --test`, and confirm
    it **fails** before your change. Then make the change and confirm it
@@ -58,12 +60,12 @@ A stop is a valid result. Report it with `RESULT | stopped=<reason>`.
 1. **Push the branch by name:** `git push -u origin <branch>`. Never push
    `main`, `HEAD` or without a branch name, and never force-push.
 2. **Open the PR** with the body in a file (write it with your file tool to
-   `.claude-notes/pr-<branch>.md`):
-   `gh pr create --base main --head <branch> --title "<title>" --body-file .claude-notes/pr-<branch>.md`.
+   `.claude-notes/pr-<slug>.md`):
+   `gh pr create --base main --head <branch> --title "<title>" --body-file .claude-notes/pr-<slug>.md`.
    The body has: what changed and why, `Closes #<n>` if there is an issue,
    the `npm test` result (pass/fail counts), manual checks needed, and
    anything you noticed but left alone.
-3. **Remove the worktree:** `git worktree remove .claude-notes/wt/<branch>`.
+3. **Remove the worktree:** `git worktree remove .claude-notes/wt/<slug>`.
 4. **End with one line:**
    `RESULT | pr=<url> | branch=<branch> | tests=<pass>/<total> | manual-checks=<ids or none>`
    or `RESULT | stopped=<reason>`.
