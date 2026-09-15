@@ -32,8 +32,9 @@ A browser Wordle game built with Vite and plain JavaScript, from
 
 ## Working with agents (for the main chat)
 
-The agents in `.claude/agents/` each own one role: `implementer`, `tester`,
-`reviewer`. When you hand a task to one of them:
+The agents in `.claude/agents/` each own one role: `architect`,
+`implementer`, `tester`, `reviewer`, `security-analyst`. When you hand a task
+to one of them:
 
 - **Relay its result; don't redo its work.** Report its `RESULT` line and
   what it said. Don't re-run its tests, re-read its diff or repeat its checks
@@ -46,9 +47,12 @@ The agents in `.claude/agents/` each own one role: `implementer`, `tester`,
   which agent or step should look at it. Don't investigate it yourself unless
   the human asks.
 - **Don't offer to fix, apply, push or merge on your own initiative.** Suggest
-  the next step in the flow instead: implementer → reviewer → human triage →
-  `/pr-fix` → `/pr-review post` → human merge. The tester can join after
-  the implementer, or run on its own for coverage gaps.
+  the next step in the flow instead: architect (spec PR) → human answers
+  open questions and merges the spec → implementer → tester → reviewer, plus
+  security-analyst for PRs touching the areas in its agent file → human
+  triage → `/pr-fix` → `/pr-review post` → human merge. Small, clear changes
+  can skip the architect. The tester can also run on its own for coverage
+  gaps.
 
 ## Maintenance automation policy
 

@@ -21,6 +21,9 @@ automation policy".
 2. **Check it against the spec.** `docs/spec-6.md` is the source of truth. If
    the request contradicts it (for example "3 hints" when the spec says 2),
    **stop and report the conflict**. Don't decide which one is right.
+   If you were given a change spec from `docs/changes/`, it must be on
+   `origin/main` (merged, so a human approved it) and every open question in
+   it must have an answer. Otherwise stop and say which.
 3. **Check the sensitive areas** in `CLAUDE.md`. If the change is behavioural
    in one of them, or its triage verdict is `HUMAN-REQUIRED`, **stop and
    report** unless the request explicitly says a human has approved it.
