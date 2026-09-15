@@ -1,0 +1,29 @@
+{
+  "name": "wordle-practice",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+
+  "remoteUser": "node",
+
+  "remoteEnv": {
+    "GH_TOKEN": "${localEnv:CAPYBARA_GH_TOKEN}",
+    "ANTHROPIC_API_KEY": "${localEnv:CAPYBARA_ANTHROPIC_KEY}"
+  },
+
+  "mounts": [
+    "source=wordle-claude,target=/home/node/.claude,type=volume",
+    "source=wordle-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+
+  "postCreateCommand": "sudo chown -R node:node /home/node/.claude node_modules && npm ci && (gh auth setup-git || echo 'WARNING: gh auth setup-git failed - is CAPYBARA_GH_TOKEN set on the host?')",
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code"]
+    }
+  }
+}

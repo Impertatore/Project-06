@@ -1,2 +1,7 @@
 node_modules/
 dist/
+
+# Claude Code: local permissions and agent scratch output. Your host's global
+# gitignore covers settings.local.json, but the container doesn't have it.
+.claude/settings.local.json
+.claude-notes/
