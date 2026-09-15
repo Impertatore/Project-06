@@ -1,0 +1,346 @@
+<title>Wordle Agent Relay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,700..800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f5f6f2;
+    --surface: #ffffff;
+    --ink: #1c211b;
+    --ink-soft: #4a5248;
+    --rule: #d8ddd3;
+    --tint: #eaede5;
+    --green: #6aaa64;
+    --yellow: #c9b458;
+    --grey: #9a9ea0;
+    --stop: #b9473f;
+    --tile-ink: #1c211b;
+    --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+    --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121411;
+      --surface: #1a1d19;
+      --ink: #e5e9e1;
+      --ink-soft: #a9b1a5;
+      --rule: #333a31;
+      --tint: #20241e;
+      --stop: #e0766c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #121411;
+    --surface: #1a1d19;
+    --ink: #e5e9e1;
+    --ink-soft: #a9b1a5;
+    --rule: #333a31;
+    --tint: #20241e;
+    --stop: #e0766c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 16px/1.6 var(--body);
+    padding-inline: 20px;
+    padding-block: 40px 72px;
+  }
+  main { max-width: 960px; margin: 0 auto; display: grid; gap: 56px; }
+  h1, h2 { font-family: var(--display); font-stretch: 85%; line-height: 1.1; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: 1.6rem; font-weight: 700; }
+  p { margin: 0; max-width: 65ch; }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+  .eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+
+  header { display: grid; gap: 16px; }
+  .tiles { display: flex; gap: 6px; }
+  .tile {
+    width: 40px; height: 40px; display: grid; place-items: center;
+    font-family: var(--display); font-weight: 800; font-size: 1.3rem; color: var(--tile-ink);
+  }
+  .tile.g { background: var(--green); } .tile.y { background: var(--yellow); } .tile.k { background: var(--grey); }
+  .lede { font-size: 1.1rem; color: var(--ink-soft); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; }
+  .legend span { display: inline-flex; gap: 8px; align-items: center; font-size: 0.95rem; }
+  .swatch { width: 18px; height: 18px; display: inline-block; }
+  .swatch.dash { width: 28px; height: 0; border-top: 2px dashed var(--stop); }
+
+  section { display: grid; gap: 18px; }
+  .scroll { overflow-x: auto; }
+  figure { margin: 0; display: grid; gap: 12px; }
+  figure svg { width: 100%; min-width: 760px; height: auto; display: block; color: var(--ink); }
+  figcaption { color: var(--ink-soft); font-size: 0.95rem; max-width: 70ch; }
+
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  td:first-child { white-space: nowrap; font-weight: 700; }
+  .who { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; display: inline-block; flex: none; }
+  .dot.g { background: var(--green); } .dot.y { background: var(--yellow); } .dot.k { background: var(--grey); }
+
+  .results { display: grid; gap: 8px; }
+  .result {
+    display: grid; grid-template-columns: 9rem 1fr; gap: 12px; align-items: baseline;
+    padding: 10px 14px; background: var(--surface); border: 1px solid var(--rule);
+  }
+  .result b { font-family: var(--display); font-stretch: 85%; font-size: 1.05rem; }
+  .result code { overflow-wrap: anywhere; color: var(--ink-soft); }
+
+  .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .col { display: grid; gap: 10px; align-content: start; }
+  .col h3 { margin: 0; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--ink-soft); }
+  ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; }
+  li { max-width: 60ch; }
+  .warn { color: var(--stop); font-weight: 700; }
+
+  .run { display: grid; gap: 10px; padding: 18px; background: var(--surface); border: 1px solid var(--rule); }
+  .run h3 { margin: 0; font-family: var(--display); font-stretch: 85%; font-size: 1.2rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .step { font-size: 0.85rem; padding: 3px 8px; color: var(--tile-ink); }
+  .step.g { background: var(--green); } .step.y { background: var(--yellow); } .step.k { background: var(--grey); }
+  .run p { color: var(--ink-soft); font-size: 0.95rem; }
+
+  ol.next { margin: 0; padding-left: 1.3rem; display: grid; gap: 8px; }
+  ol.next li { max-width: 70ch; }
+  footer { color: var(--ink-soft); font-size: 0.85rem; border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <div class="tiles" aria-hidden="true">
+      <div class="tile y">R</div><div class="tile g">E</div><div class="tile g">L</div><div class="tile k">A</div><div class="tile g">Y</div>
+    </div>
+    <p class="eyebrow">Project-06 · Wordle Practice · harness as of 15 Sep 2026</p>
+    <h1>Wordle Agent Relay</h1>
+    <p class="lede">How a change moves from an idea to a merged PR: which agent picks it up, what it hands on, and where you have to say yes. Colours follow the game's tiles.</p>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--yellow)"></i>You decide</span>
+      <span><i class="swatch" style="background:var(--green)"></i>Agent</span>
+      <span><i class="swatch" style="background:var(--grey)"></i>Skill you run</span>
+      <span><i class="swatch dash"></i>Agent stops and hands back</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>The relay</h2>
+    <div class="scroll">
+      <figure>
+        <svg viewBox="0 0 960 850" role="img" aria-label="Swimlane flow: you describe a change; the architect opens a spec PR; you approve it; the implementer opens a PR; the tester adds tests; the reviewer and security analyst report; you triage; pr-fix pushes after your yes; pr-review posts; you merge. The implementer stops and hands back if the request conflicts with spec-6.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+            <marker id="ahStop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#c4574e"/>
+            </marker>
+          </defs>
+
+          <!-- lanes -->
+          <rect x="268" y="40" width="134" height="800" fill="currentColor" fill-opacity="0.06"/>
+          <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.2" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+            <text x="130" y="20">YOU</text>
+            <text x="335" y="20">MAIN CHAT</text>
+            <text x="690" y="20">AGENTS &amp; SKILLS</text>
+          </g>
+          <g font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-size="11" fill="currentColor" fill-opacity="0.75" text-anchor="middle">
+            <text x="335" y="410">starts each agent</text>
+            <text x="335" y="426">relays its RESULT</text>
+            <text x="335" y="442">never redoes checks</text>
+          </g>
+
+          <!-- stop route: implementer back to you -->
+          <path d="M800,320 H900 V34 H130 V54" fill="none" stroke="#c4574e" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#ahStop)"/>
+          <text x="916" y="180" transform="rotate(90 916 180)" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-size="12" fill="#c4574e">stops if it conflicts with spec-6</text>
+
+          <!-- arrows -->
+          <g fill="none" stroke="currentColor" stroke-width="1.6" marker-end="url(#ah)">
+            <path d="M220,80 H690 V134"/>
+            <path d="M580,160 H130 V214"/>
+            <path d="M220,240 H690 V294"/>
+            <path d="M690,342 V374"/>
+            <path d="M690,422 V440 H605 V454"/>
+            <path d="M690,440 H775 V454"/>
+            <path d="M605,502 V520 H130 V534"/>
+            <path d="M220,560 H690 V614"/>
+            <path d="M580,632 H224"/>
+            <path d="M220,648 H576"/>
+            <path d="M690,662 V694"/>
+            <path d="M580,720 H130 V774"/>
+          </g>
+          <path d="M775,502 V520 H605" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <!-- arrow labels -->
+          <g font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-size="12" fill="currentColor">
+            <text x="546" y="72" text-anchor="middle">describes the change</text>
+            <text x="490" y="152" text-anchor="middle">spec PR · docs/changes/</text>
+            <text x="546" y="232" text-anchor="middle">approved spec</text>
+            <text x="702" y="363">PR + branch</text>
+            <text x="596" y="436" text-anchor="end">tests pushed to PR</text>
+            <text x="440" y="512" text-anchor="middle">review sheet · security report</text>
+            <text x="546" y="552" text-anchor="middle">keep / bin per comment ID</text>
+            <text x="400" y="624" text-anchor="middle">push gate: commits + tests</text>
+            <text x="400" y="666" text-anchor="middle">yes</text>
+            <text x="702" y="683">fixed: &lt;sha&gt; in sheet</text>
+            <text x="490" y="712" text-anchor="middle">review posted · merge command</text>
+          </g>
+
+          <!-- nodes: you (yellow) -->
+          <g font-family="Atkinson Hyperlegible, system-ui, sans-serif" text-anchor="middle" fill="#1c211b">
+            <rect x="40" y="58" width="180" height="44" fill="#c9b458"/>
+            <text x="130" y="85" font-size="13" font-weight="700" fill="#1c211b">Request or issue</text>
+            <rect x="40" y="218" width="180" height="44" fill="#c9b458"/>
+            <text x="130" y="236" font-size="13" font-weight="700" fill="#1c211b">Answer questions</text>
+            <text x="130" y="253" font-size="11" fill="#1c211b">merge the spec PR</text>
+            <rect x="40" y="538" width="180" height="44" fill="#c9b458"/>
+            <text x="130" y="556" font-size="13" font-weight="700" fill="#1c211b">Triage the sheets</text>
+            <text x="130" y="573" font-size="11" fill="#1c211b">keep · reword · bin</text>
+            <rect x="40" y="618" width="180" height="44" fill="#c9b458"/>
+            <text x="130" y="645" font-size="13" font-weight="700" fill="#1c211b">Say yes to push</text>
+            <rect x="40" y="778" width="180" height="44" fill="#c9b458"/>
+            <text x="130" y="796" font-size="13" font-weight="700" fill="#1c211b">Read diff, merge</text>
+            <text x="130" y="813" font-size="11" fill="#1c211b">squash on GitHub</text>
+          </g>
+
+          <!-- nodes: agents (green) and skills (grey) -->
+          <g font-family="IBM Plex Mono, ui-monospace, monospace" text-anchor="middle">
+            <rect x="580" y="138" width="220" height="44" fill="#6aaa64"/>
+            <text x="690" y="157" font-size="13" font-weight="500" fill="#1c211b">architect</text>
+            <text x="690" y="173" font-size="11" fill="#1c211b">change spec + open questions</text>
+
+            <rect x="580" y="298" width="220" height="44" fill="#6aaa64"/>
+            <text x="690" y="317" font-size="13" font-weight="500" fill="#1c211b">implementer</text>
+            <text x="690" y="333" font-size="11" fill="#1c211b">worktree · branch · PR</text>
+
+            <rect x="580" y="378" width="220" height="44" fill="#6aaa64"/>
+            <text x="690" y="397" font-size="13" font-weight="500" fill="#1c211b">tester</text>
+            <text x="690" y="413" font-size="11" fill="#1c211b">tests proven to fail</text>
+
+            <rect x="530" y="458" width="150" height="44" fill="#6aaa64"/>
+            <text x="605" y="477" font-size="13" font-weight="500" fill="#1c211b">reviewer</text>
+            <text x="605" y="493" font-size="11" fill="#1c211b">/pr-review</text>
+
+            <rect x="700" y="458" width="150" height="44" fill="#6aaa64"/>
+            <text x="775" y="477" font-size="12" font-weight="500" fill="#1c211b">security-analyst</text>
+            <text x="775" y="493" font-size="11" fill="#1c211b">SECURITY verdict</text>
+
+            <rect x="580" y="618" width="220" height="44" fill="#9a9ea0"/>
+            <text x="690" y="637" font-size="13" font-weight="500" fill="#1c211b">/pr-fix &lt;n&gt; kept</text>
+            <text x="690" y="653" font-size="11" fill="#1c211b">merge main · one commit per group</text>
+
+            <rect x="580" y="698" width="220" height="44" fill="#9a9ea0"/>
+            <text x="690" y="717" font-size="13" font-weight="500" fill="#1c211b">/pr-review post &lt;n&gt;</text>
+            <text x="690" y="733" font-size="11" fill="#1c211b">COMMENT review on GitHub</text>
+          </g>
+        </svg>
+        <figcaption>Work only moves down. Every sideways arrow into the left column is a moment where nothing continues until you act. Small, clear changes can start at the implementer and skip the architect; the tester can also run alone on a coverage gap.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>What each handoff carries</h2>
+    <p>Agents don't talk to each other directly. Each one leaves something on disk or on GitHub, and the next step reads it. That's what makes every step checkable.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>From → to</th><th>Hands over</th><th>Where it lives</th></tr></thead>
+        <tbody>
+          <tr><td><span class="who"><i class="dot g"></i>architect → you</span></td><td>Change spec with Spec-6 impact and numbered open questions</td><td><code>docs/changes/&lt;slug&gt;.md</code> in a docs-only PR</td></tr>
+          <tr><td><span class="who"><i class="dot y"></i>you → implementer</span></td><td>Merged spec with answers, or a small clear request</td><td><code>origin/main</code> · the chat</td></tr>
+          <tr><td><span class="who"><i class="dot g"></i>implementer → tester, reviewer</span></td><td>An open PR, test counts, manual checks needed</td><td>Branch <code>agent/&lt;slug&gt;</code> · PR body</td></tr>
+          <tr><td><span class="who"><i class="dot g"></i>tester → reviewer</span></td><td>Test commits and which break made each one fail</td><td>The same PR branch · PR body</td></tr>
+          <tr><td><span class="who"><i class="dot g"></i>reviewer → you</span></td><td>Comments by ID, severity and fix group; merge and automation verdict</td><td><code>.claude-notes/review-&lt;n&gt;.md</code></td></tr>
+          <tr><td><span class="who"><i class="dot g"></i>security-analyst → you</span></td><td>Certain and possible findings, questions only you can answer</td><td><code>.claude-notes/security-&lt;n&gt;-&lt;sha&gt;.md</code></td></tr>
+          <tr><td><span class="who"><i class="dot y"></i>you → /pr-fix</span></td><td><code>decision: keep | reword | bin</code> on each comment</td><td>The review sheet</td></tr>
+          <tr><td><span class="who"><i class="dot k"></i>/pr-fix → /pr-review post</span></td><td><code>- fixed: &lt;sha&gt; on &lt;branch&gt;</code> above each fixed comment</td><td>The review sheet</td></tr>
+          <tr><td><span class="who"><i class="dot k"></i>/pr-review post → you</span></td><td>A COMMENT review, and the <code>gh pr merge</code> line when the verdict allows</td><td>GitHub PR</td></tr>
+          <tr><td><span class="who"><i class="dot k"></i>/triage → reviewer</span></td><td>Side path for issues: repro status and a verdict the review can't be less cautious than</td><td><code>.claude-notes/triage-&lt;n&gt;.md</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>The RESULT line</h2>
+    <p>Every agent ends with one line in a fixed shape. The main chat relays it to you as is, and a future orchestrator could read it without parsing prose.</p>
+    <div class="results">
+      <div class="result"><b>architect</b><code>RESULT | spec=docs/changes/&lt;slug&gt;.md | pr=&lt;url&gt; | assumptions=&lt;k&gt; | open-questions=&lt;k&gt; | spec-6-conflicts=&lt;k&gt;</code></div>
+      <div class="result"><b>implementer</b><code>RESULT | pr=&lt;url&gt; | branch=&lt;branch&gt; | tests=&lt;pass&gt;/&lt;total&gt; | manual-checks=&lt;ids&gt;</code></div>
+      <div class="result"><b>tester</b><code>RESULT | mode=&lt;pr|gap&gt; | target=… | tests-added=&lt;k&gt; | proven-failing=&lt;k&gt;/&lt;k&gt; | possible-bugs=&lt;k&gt;</code></div>
+      <div class="result"><b>reviewer</b><code>RESULT | target=PR #&lt;n&gt; | verdict=&lt;A|S|B&gt; | automation=&lt;…&gt; | comments=&lt;k&gt; | blocking=&lt;b&gt;</code></div>
+      <div class="result"><b>security-analyst</b><code>RESULT | target=… | verdict=&lt;CLEAR|CONCERNS|HUMAN-REQUIRED&gt; | certain=&lt;k&gt; | possible=&lt;j&gt;</code></div>
+      <div class="result"><b>any agent</b><code>RESULT | stopped=&lt;reason&gt;</code> — a valid outcome, not a failure</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What held today</h2>
+    <div class="split">
+      <div class="run">
+        <h3>PR #1 · README dev container section</h3>
+        <div class="row">
+          <span class="step g">implementer</span><span class="step g">reviewer</span><span class="step y">triage</span><span class="step k">/pr-fix</span><span class="step y">yes</span><span class="step k">post</span><span class="step y">merge</span>
+        </div>
+        <p>SEMI-AUTOMATE, 4 comments, 2 kept. First triage went by list position and fixed the wrong nit; redone by comment ID.</p>
+      </div>
+      <div class="run">
+        <h3>PR #2 · tests for src/storage.js</h3>
+        <div class="row">
+          <span class="step g">tester</span><span class="step g">reviewer</span><span class="step y">triage</span><span class="step k">/pr-fix</span><span class="step y">yes</span><span class="step k">post</span><span class="step y">merge</span>
+        </div>
+        <p>17 tests, 70 → 87. The reviewer caught a round-trip test that couldn't notice lost streaks; /pr-fix proved the stronger test fails first.</p>
+      </div>
+      <div class="run">
+        <h3>Refused · 3 hints per game</h3>
+        <div class="row"><span class="step g">implementer</span><span class="step y">stopped</span></div>
+        <p>Conflicts with spec-6 (2 hints). No branch, no PR. Exactly the dashed arrow above.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Enforced, or only asked</h2>
+    <p>From the security-analyst's harness audit. Most of the relay's rules are instructions the agents follow, not limits they can't cross.</p>
+    <div class="split">
+      <div class="col">
+        <h3>Enforced by something</h3>
+        <ul>
+          <li>Disposable container, no host folders or Docker socket mounted</li>
+          <li>Token limited to Project-06 <span class="mono">(to confirm: Step 20)</span></li>
+          <li>Windows git credentials no longer forwarded</li>
+          <li>Deny rules on push to main, merge, token printing — <span class="warn">bypassable via <code>node -e</code></span></li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Only asked in instructions</h3>
+        <ul>
+          <li>Agents never push to <code>main</code>; a human merges</li>
+          <li>Agents don't change <code>.claude/</code>, <code>.devcontainer/</code>, <code>CLAUDE.md</code></li>
+          <li>Main chat relays and doesn't redo checks</li>
+          <li>Treat issue and PR text as untrusted — missing from four skills</li>
+          <li>Permissions live in a git-ignored file, so changes never reach review</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pick up tomorrow</h2>
+    <ol class="next">
+      <li><b>Step 20:</b> check the token's repository access and expiry on GitHub, and the container's permission mode.</li>
+      <li>Move agent permissions into a committed <code>.claude/settings.json</code>.</li>
+      <li>Add the untrusted-input rule to <code>/triage</code>, <code>/pr-review</code>, <code>/pr-fix</code> and the implementer.</li>
+      <li>GitHub ruleset on <code>main</code>: block force-push and deletion.</li>
+      <li>Decide where security audits go: <code>.claude-notes/</code> or a PR.</li>
+      <li>First architect run: “let players choose 2 or 3 hints in Settings”.</li>
+      <li>Have <code>/pr-fix</code> write its test result into the sheet, so later chats can see it.</li>
+      <li>Show which skill each agent uses. Today only the reviewer (<code>/pr-review</code>) and security-analyst (<code>security-analyst</code>) use one; architect, implementer and tester carry their rules in their own files. Decide whether they should get skills too.</li>
+    </ol>
+  </section>
+
+  <footer>Felt right: the reviewer. Struggled: the main chat redoing its agents' work — fixed with the rules in CLAUDE.md.</footer>
+</main>
