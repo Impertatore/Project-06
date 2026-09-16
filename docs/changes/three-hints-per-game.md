@@ -241,3 +241,42 @@ player-visible text and must change with the rest.
    Settings panel (3.10) covers hard mode, dark mode and high contrast only.
    [assumed: a one-off change, no setting.] Round 7 as authored adds no
    setting.
+
+## Decisions [decided-by-po]
+
+1. **Existing saved statistics.** Leave them exactly as they are. A stored
+   "hints per game" average keeps blending games played under the 2-hint cap
+   and the 3-hint cap; no reset, no migration, no new field.
+   `[assumed]` — spec 3.8 defines the average but is silent on a cap change,
+   and this change's own Non-goals (§2: "Not changing the shape of saved
+   statistics or settings in local storage") already rule out a migration.
+   Leaving data alone is lower-risk than inventing a reset or a split metric
+   nothing in the spec asks for.
+
+2. **Last-row rule stands unchanged with 3 hints.** No further limit (e.g. no
+   cap on hints before the first guess). The existing disablement rule — no
+   hints left, only the last row left, or the game ended — is the only rule,
+   exactly as quoted from spec §3.7.
+   `[spec §3.7]` — the quoted rule already fully determines when the button is
+   disabled and says nothing about capping hints relative to guesses; this
+   change's own Non-goals (§2: "Not changing the rule that a hint may not be
+   used on the last row") confirm no new rule was intended.
+
+3. **Win messages after heavy hint use stay unchanged.** A win after 3 hints
+   and 1 guess still shows the message for 4 rows used, with no separate note
+   about hints.
+   `[spec §3.6, §3.7]` — both quoted passages say hint rows count for the win
+   message exactly like guess rows; three hints does not change that
+   arithmetic, it only changes how many hint rows are possible.
+
+4. **Three hints is a one-off change, not a difficulty setting.** No new
+   Settings-panel control for hint count.
+   `[spec §3.10, assumed]` — the input asks only to "change the number of
+   hints per game from 2 to 3", spec 3.10 lists exactly hard mode, dark mode
+   and high contrast as the Settings panel's contents, and this change's own
+   Non-goals (§2: "Not making the number of hints a player setting or a
+   difficulty option") already commit to no setting.
+
+All four decisions confirm the assumptions round 7 was already authored
+under; no wording in `docs/spec-7.md` or in section 5's acceptance criteria
+needs to change as a result of this round of decisions.
