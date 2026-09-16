@@ -359,27 +359,29 @@ if (cmd === 'start') {
     } catch {
       // A malformed payload still gets an event, just without usage.
     }
+    // Every agent in a run writes to the same transcript file, so a reading of
+    // that file is the run's total so far, not this agent's spend. Always take
+    // the growth since the last reading, keyed by transcript path: if a future
+    // version of Claude Code gives each subagent its own file, the previous
+    // reading for that path is empty and the delta is the whole file, which is
+    // then also correct. Getting this wrong reports every agent as the running
+    // total and overstates a six-agent run by roughly three and a half times.
     const st = paths(slug).state
-    const before = fs.existsSync(st) ? JSON.parse(fs.readFileSync(st, 'utf8')) : {}
-    const now = sidechainUsage(h.transcript_path)
+    const saved = fs.existsSync(st) ? JSON.parse(fs.readFileSync(st, 'utf8')) : {}
+    const key = h.transcript_path || 'unknown'
+    const prev = saved[key] || { usage: {}, turns: 0 }
 
-    // Two shapes are possible and which one we get is empirical:
-    //  - the parent session transcript, where a subagent's messages are
-    //    flagged isSidechain -> this agent's spend is the growth since the
-    //    previous agent stopped;
-    //  - the subagent's own transcript, which has no sidechain flags at all
-    //    -> the whole file is this agent's spend.
-    let delta
-    let attribution
-    if (Object.keys(now).length) {
-      delta = diffUsage(now, before)
-      attribution = 'sidechain-delta'
-      fs.mkdirSync(NOTES, { recursive: true })
-      fs.writeFileSync(st, JSON.stringify(now))
-    } else {
-      delta = totalUsage(h.transcript_path)
-      attribution = 'whole-file'
-    }
+    const sc = sidechainUsage(h.transcript_path)
+    const attribution = Object.keys(sc).length ? 'sidechain' : 'whole-file'
+    const now = Object.keys(sc).length ? sc : totalUsage(h.transcript_path)
+    const delta = diffUsage(now, prev.usage || {})
+
+    const turnsNow = countTurns(h.transcript_path)
+    const turns = turnsNow == null ? null : turnsNow - (prev.turns || 0)
+
+    saved[key] = { usage: now, turns: turnsNow || 0 }
+    fs.mkdirSync(NOTES, { recursive: true })
+    fs.writeFileSync(st, JSON.stringify(saved))
 
     let cost = 0
     const sum = { in: 0, out: 0, cache_r: 0, cache_w: 0 }
@@ -393,7 +395,7 @@ if (cmd === 'start') {
       tokens: sum,
       cost_usd: Number(cost.toFixed(4)),
       models: Object.keys(delta).join(','),
-      turns: attribution === 'whole-file' ? countTurns(h.transcript_path) : null,
+      turns,
       attribution,
       transcript: h.transcript_path || '-',
     })
