@@ -2,8 +2,8 @@
 
 A record of how the spec was built, round by round, for the demo.
 
-The **promoted** round is 6: [spec-current.md](spec-current.md) is a verbatim
-copy of [spec-6.md](spec-6.md) and is what the agents and skills read. When a
+The **promoted** round is 7: [spec-current.md](spec-current.md) is a verbatim
+copy of [spec-7.md](spec-7.md) and is what the agents and skills read. When a
 new round is approved, copy it over `spec-current.md` and update this line.
 
 | Round | Input | Output | `[assumed]` tags | Open questions |
@@ -14,6 +14,7 @@ new round is approved, copy it over `spec-current.md` and update this line.
 | 4 | "Stop asking, infer the rest" | [spec-4.md](spec-4.md) | 51 `[assumed]` + 32 `[inferred]` | None. All decided by inference |
 | 5 | Change request after the first build: better hints | [spec-5.md](spec-5.md) | Same as round 4 | None |
 | 6 | Bug report: a hint found nothing new | [spec-6.md](spec-6.md) | Same as round 4 | None |
+| 7 | Change request: 3 hints per game instead of 2 | [spec-7.md](spec-7.md) | Same as round 4, plus 4 new | 6, in [docs/changes/three-hints-per-game.md](changes/three-hints-per-game.md) |
 
 ## Round 1: first attempt
 
@@ -286,3 +287,29 @@ The screenshot showed APPLE (E yellow), FERAL (E yellow, R green), then the hint
 ### What the round shows
 
 Round 5's rule ("keep the finds") was written as the user asked, but it didn't capture the point of a hint: to help. A real game showed the gap. The spec examples now include a "keeps everything, finds nothing" row, so the gap is visible in the spec itself.
+
+## Round 7: three hints per game
+
+### Change description given, verbatim
+
+```
+change the number of hints per game from 2 to 3
+```
+
+### What changed
+
+- [spec-7.md](spec-7.md): the player gets 3 hints per game, not 2. The hint
+  button reads "Hint (3)" on a new game and counts down to "Hint (0)".
+  Sections 1, 3.1, 3.2, 3.7, 3.8 and 3.11 changed, plus criteria 11, 35, 41,
+  42c, 48 and 59.
+- The rules a hint word must satisfy (rounds 5 and 6) are untouched. So is the
+  rule that a hint is never allowed when only the last row is left; 3 hints
+  still fit, because hints are allowed on rows 1 to 5.
+- New criteria: 41a (disabled at "Hint (0)" mid-game), 41b (an automated test
+  of the count), 48a (statistics saved before round 7 survive unchanged).
+- Saved player data keeps its format. No field is added, removed or
+  re-interpreted, so no migration is needed. The "hints per game" average can
+  now reach 3.0 and, for existing players, mixes games played under both
+  limits.
+- The change spec, its assumptions and its open questions are in
+  [docs/changes/three-hints-per-game.md](changes/three-hints-per-game.md).
