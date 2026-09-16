@@ -170,8 +170,14 @@ function subagentTotals(transcript) {
   for (const name of fs.readdirSync(dir)) {
     if (!name.endsWith('.jsonl')) continue
     const f = path.join(dir, name)
-    const usage = {}
-    let turns = 0
+
+    // One assistant message is written to the transcript several times as it
+    // streams, each line carrying a larger output_tokens than the last. Summing
+    // the lines counts the same turn two to five times over and inflates both
+    // the turn count and the cost. Key by message id and keep the last line for
+    // each, which holds the final usage.
+    const byId = new Map()
+    let seq = 0
     for (const line of fs.readFileSync(f, 'utf8').split('\n')) {
       if (!line || line.indexOf('"usage"') === -1) continue
       let e
@@ -180,18 +186,24 @@ function subagentTotals(transcript) {
       } catch {
         continue
       }
-      const u = e && e.message && e.message.usage
-      if (!u) continue
-      if (e.message.role === 'assistant') turns++
-      const m = e.message.model || 'unknown'
-      if (!usage[m]) usage[m] = { in: 0, out: 0, cache_r: 0, cache_w: 0 }
-      const t = usage[m]
+      const msg = e && e.message
+      if (!msg || !msg.usage || msg.role !== 'assistant') continue
+      byId.set(msg.id || 'anon-' + seq++, {
+        model: msg.model || 'unknown',
+        u: msg.usage,
+      })
+    }
+
+    const usage = {}
+    for (const { model, u } of byId.values()) {
+      if (!usage[model]) usage[model] = { in: 0, out: 0, cache_r: 0, cache_w: 0 }
+      const t = usage[model]
       t.in += u.input_tokens || 0
       t.out += u.output_tokens || 0
       t.cache_r += u.cache_read_input_tokens || 0
       t.cache_w += u.cache_creation_input_tokens || 0
     }
-    out[name] = { usage, turns }
+    out[name] = { usage, turns: byId.size }
   }
   return out
 }
