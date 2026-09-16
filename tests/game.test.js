@@ -4,6 +4,7 @@ import {
   addLetter,
   canUseHint,
   gameSummary,
+  HINTS_PER_GAME,
   keyStates,
   newGame,
   quitGame,
@@ -114,26 +115,57 @@ describe('winning and losing', () => {
 });
 
 describe('hints', () => {
+  test('a new game starts with three hints', () => {
+    assert.equal(HINTS_PER_GAME, 3);
+    assert.equal(newGame('CRANE').hintsLeft, 3);
+  });
+
   test('a hint fills the current row, replacing typed letters', () => {
     const game = useHint(type(newGame('CRANE'), 'cr'), 'TRAIN');
     assert.equal(game.rows[0].word, 'TRAIN');
     assert.equal(game.rows[0].hint, true);
     assert.equal(game.current, '');
-    assert.equal(game.hintsLeft, 1);
+    assert.equal(game.hintsLeft, 2);
   });
 
-  test('only two hints per game', () => {
+  test('each hint used leaves one fewer, down to none', () => {
+    let game = newGame('CRANE');
+    assert.equal(game.hintsLeft, 3);
+    game = useHint(game, 'TRAIN');
+    assert.equal(game.hintsLeft, 2);
+    game = useHint(game, 'SLATE');
+    assert.equal(game.hintsLeft, 1);
+    game = useHint(game, 'PRANK');
+    assert.equal(game.hintsLeft, 0);
+  });
+
+  test('only three hints per game', () => {
     let game = useHint(newGame('CRANE'), 'TRAIN');
     game = useHint(game, 'SLATE');
+    game = useHint(game, 'PRANK');
     assert.equal(game.hintsLeft, 0);
+    assert.equal(game.rows.length, 3);
     assert.equal(canUseHint(game), false);
+    // A fourth press changes nothing: no row is used and the count stays at 0.
     assert.equal(useHint(game, 'PLACE'), game);
+  });
+
+  test('three hints are reported to the statistics as three', () => {
+    let game = useHint(newGame('CRANE'), 'TRAIN');
+    game = useHint(game, 'SLATE');
+    game = useHint(game, 'PRANK');
+    game = guess(game, 'CRANE');
+    const summary = gameSummary(game);
+    assert.equal(summary.hints, 3);
+    assert.equal(summary.guesses, 1);
+    assert.equal(summary.rowsUsed, 4);
+    assert.equal(winMessage(summary.rowsUsed), 'Splendid');
   });
 
   test('no hint when only the last row is left', () => {
     let game = newGame('CRANE');
     for (let i = 0; i < 5; i++) game = guess(game, 'MOIST');
-    assert.equal(game.hintsLeft, 2);
+    assert.equal(game.hintsLeft, 3);
     assert.equal(canUseHint(game), false);
   });
 
