@@ -206,3 +206,62 @@ also keeps its shape; only the hint count in it can reach 3.
    Spec text: section 3.11, "It explains how to play, including the colours,
    hints, hard mode and quitting [inferred]." Spec is otherwise silent on
    where the number appears.
+
+## Decisions [decided-by-po]
+
+1. Leave existing saved statistics exactly as they are; reset nothing, and add
+   no label distinguishing games played under the old allowance from the new
+   one. `[spec §3.8]` — round 7's own text already states this: "Games played
+   when the allowance was 2 stay in the totals as they are; nothing is reset
+   [assumed]." The change spec's own draft of round 7 already carries this
+   decision; I am confirming it, not introducing it. Rationale: "hints per
+   game" is defined as a plain average (3.8); an average naturally mixes
+   values from different periods, the same way it already mixes easy and hard
+   games, so no extra bookkeeping is needed and none is specified anywhere.
+
+2. Acceptable: no further cap on the hint allowance. The only limits stay the
+   existing ones — no hints left, only the last row free, or the game has
+   ended. A player who uses all 3 hints can win no better than "Splendid".
+   `[spec §3.7]` — round 7 already states this directly: "All 3 hints fit in
+   one game: up to 5 rows may hold a hint. A player who uses all 3 has 3 rows
+   left to guess in, so the best win message they can reach is 'Splendid'
+   (4 rows used)." Rationale: the spec already works out that
+   3 hints always leave at least one row to guess in, so the existing
+   last-row rule already prevents a hint from ever winning or losing the game
+   outright; no new rule is needed.
+
+3. Fixed at 3, not a Settings option. `[spec §3.10]` — section 3.10 lists
+   exactly three switches ("Hard mode", "Dark mode", "High contrast") and
+   nothing about hints; the change's own non-goals already say "Not making
+   the allowance a setting or a per-game option." Rationale: the spec is
+   silent on a hint-count setting and the change explicitly rules one out;
+   adding one would be new scope the architect already excluded.
+
+4. No, the hint-selection rules in 3.7 do not change; only the allowance does.
+   `[spec §3.7]` — quoted directly: "If no word other than the answer meets
+   all these rules, pressing 'Hint' shows 'No hint available…'. No hint is
+   used up." This rule is unchanged by round 7, and the change's own
+   non-goals state "Not changing what a hint word is, or how one is chosen
+   (spec 3.7 rules)." Rationale: the architect already fixed this in
+   Non-goals; a later hint finding nothing new would be a rule change, which
+   is explicitly out of scope.
+
+5. No other player-facing wording states the hint count. Only the button
+   label (3.1, 3.2, 3.7) and the Help panel (3.11) need to change; the
+   screen-reader announcement (3.12) already reads the count off the button
+   state rather than repeating a fixed number, so it needs no separate edit
+   beyond starting higher. `[spec §3.11, §3.12]` — quoted: "It explains how to
+   play, including the colours, hints, hard mode and quitting [inferred]" and
+   "A screen reader announces […] the number of hints left." Rationale: I
+   checked `docs/spec-current.md` for every other mention of "hint" (sections
+   1, 3.1, 3.2, 3.7, 3.8, 3.10–3.12 and the acceptance criteria); round 7 has
+   already updated every literal count to 3, and no other section states a
+   number in prose outside the button, the Help panel and the hints-per-game
+   statistic (already covered by Q1).
+
+Acceptance criteria: no criterion changes. All 20 criteria already read "3"
+where the allowance is named, and none carried a TBD tied to these five
+questions — the architect had already resolved the counts in section 5 by the
+time these questions were raised; the open questions were about policy
+(reset, cap, setting, rule change, wording scope), and each is now answered
+above with no numeric criterion left open as a result.
