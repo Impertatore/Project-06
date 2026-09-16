@@ -180,7 +180,9 @@ Statements that are **not** contradicted and must keep holding:
 12. Share text still marks every hint row with 💡 and reveals no letters, with up
     to 3 hint rows.
 13. The Help panel states 3 hints per game, and no player-facing text anywhere
-    still says 2 hints. [assumed; TBD on open question 3]
+    still says 2 hints. [decided-by-po: see open question 3 — resolved in
+    `docs/spec-current.md` round 7, §3.11 and criterion 59, which already say
+    the Help panel states 3 hints]
 14. The screen reader announcement after a hint reports the correct number of
     hints left under the new limit.
 15. Stored statistics and settings from before the change are still read and
@@ -243,3 +245,48 @@ Statements that are **not** contradicted and must keep holding:
 
    and section 3.6:
    > - On a win, a message is shown based on the number of rows used, counting hint rows [inferred: hints use up a row, so they count like guesses].
+
+## Decisions [decided-by-po]
+
+1. **Fixed limit, no setting.** 3 is a fixed number of hints for every game;
+   this change does not add a hint-count setting. [spec §3.7, §3.10] — round 7
+   states flatly "The player has 3 hints per game" (no per-player variation),
+   and §3.10 lists the game's only three switches ("Hard mode", "Dark mode",
+   "High contrast"), with no hint-count control. The description that drove
+   this change ("change the number of hints per game from 2 to 3") also only
+   asks for the fixed number to change, at spec-current.md line 476.
+
+2. **Statistics recorded under the 2-hint limit are left as they are.** No
+   automatic migration, conversion or reset runs when this change ships; a
+   player's "Hints per game" average will mix games played under both limits
+   until they use "Reset statistics" themselves. [assumed] — spec §3.8 defines
+   the statistic only as an average over games played, with no notion of
+   "era", and §3.9's reset control is manual and player-initiated; the spec
+   is silent on any automatic reset triggered by a rule change, and CLAUDE.md
+   itself warns there is no migration path for saved player data, so leaving
+   old figures in place (rather than inventing a migration) is the reading
+   consistent with the spec.
+
+3. **The Help panel says "3 hints per game".** [spec §3.11] — this is no
+   longer an open question: round 7 of the spec, authored with this change,
+   already states it directly. §3.11 reads "It states how many hints a game
+   gives: 3", and acceptance criterion 59 reads "... explains colours, hints,
+   hard mode and quitting, and says the player gets 3 hints per game." This
+   resolves acceptance criterion 13 below, which is no longer TBD.
+
+4. **"No hint available" on the third press still counts as a pass for
+   criterion 4/41's "three hints in one game" check.** [spec §3.7] — the hint
+   rule at §3.7 ("If no word other than the answer meets all these rules,
+   pressing 'Hint' shows 'No hint available' ... No hint is used up") already
+   allows this outcome for any hint, including a game's last one, and nothing
+   in the spec ties a passing manual check to a hint word actually existing.
+   A build that reaches "Hint (0)" only because words ran out, with the
+   button and count behaving exactly as specified, has not failed the check.
+
+5. **No extra limit on hints filling half the grid.** [spec §3.7] — the
+   disabled-button rule in §3.7 lists exactly three conditions (no hints left,
+   only the last row left, game ended) and this change's intent (section 1)
+   says "only the number of hints a game starts with changes." Adding a new
+   restriction not in that list, to stop hints from using half the grid,
+   would be a design change beyond this change's scope, not an inference from
+   the spec.
