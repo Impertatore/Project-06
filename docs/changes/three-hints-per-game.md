@@ -146,8 +146,7 @@ players it blends games played under both limits (question 1).
    11.)
 8. Manual step: press "Hint" three times in one game. Three different words
    fill three rows, and the label goes "Hint (3)" → "Hint (2)" → "Hint (1)" →
-   "Hint (0)". TBD (question 2) whether this replaces criterion 41 or is added
-   alongside it.
+   "Hint (0)". (Replaces criterion 41.)
 9. Manual step: at "Hint (0)" the hint button is disabled and looks disabled,
    and pressing it does nothing, while the game is still in play.
 10. Manual step: after "New Game", the grid and key colours are cleared and the
@@ -158,13 +157,13 @@ players it blends games played under both limits (question 1).
 12. Manual step: the Help panel says the player gets 3 hints per game, and says
     nothing that implies 2.
 13. Manual step: reset statistics, then play one game using 3 hints and one
-    using none. Hints per game shows 1.5. TBD (question 3) whether this
-    replaces criterion 48.
+    using none. Hints per game shows 1.5. (Replaces criterion 48.)
 14. Manual step: win a game on row 4 after 3 hints and 1 guess. The message is
     "Splendid", and word count goes up by 1, not 4.
 15. Manual step: with statistics already holding hints from before the change,
     reload after the change. The statistics are unchanged and readable, and
-    nothing is reset. TBD (question 1).
+    nothing is reset. No migration or recalculation runs against the 3-hint
+    limit.
 16. Manual step, screen reader (Edge with Windows Narrator): the number of
     hints left is announced as 3, 2, 1, 0 as hints are used. [assumed: extends
     criterion 61, which already requires hints left to be announced]
@@ -207,3 +206,57 @@ players it blends games played under both limits (question 1).
    constant, or is a player-facing setting wanted later? This change assumes a
    fixed 3 and lists a setting as a non-goal. Spec is silent; section 3.10
    lists only "Hard mode", "Dark mode" and "High contrast" as switches.
+
+## Decisions [decided-by-po]
+
+1. **Existing saved statistics.** Leave them exactly as they are. No
+   migration, reset or recalculation runs; the "hints per game" average
+   blends games played under the 2-hint limit with games played under the
+   3-hint limit. `[assumed]` — section 3.8 defines the average with no
+   versioning concept, and "Statistics survive a page reload and closing and
+   reopening the browser" describes plain persistence, not recomputation.
+   This also matches this change's own non-goal, "Migrating, resetting or
+   recalculating statistics already in local storage." Acceptance criterion
+   15 is now concrete: no migration or recalculation runs.
+
+2. **Criterion 41.** Replace it. The three-hint version (criterion 8)
+   exercises every row and every label transition that the two-hint version
+   did, plus the new third step, so keeping both would test the same code
+   path twice for no added coverage. `[assumed]` — inferred from how the
+   architect already treated the equivalent criteria 11, 35 and 42c
+   ("Replaces criterion N"), which is the pattern this change follows
+   elsewhere. Criterion 8 now reads "(Replaces criterion 41.)"
+
+3. **Criterion 48.** Replace it, for the same reason as question 2: the
+   3-hint/1.5 check covers the same "hints per game" arithmetic path as the
+   2-hint/1.0 check, just with the new maximum. `[assumed]` — same
+   replace-in-place pattern used for criteria 11, 35 and 42c. Criterion 13
+   now reads "(Replaces criterion 48.)"
+
+4. **Wording of the help text.** Update only the number; do not add new
+   explanatory content about using all 3 hints in one game or hints using up
+   rows. `[spec §1 / Intent]` — this change's own Intent section says "Nothing
+   else about hints changes... The number is shown to the player in several
+   places (the button label, the help text), so those all have to say 3,"
+   which scopes the help-text edit to the digit, not to new explanation.
+   Acceptance criterion 12 already only requires the panel to say 3 and imply
+   nothing about 2; no change to that criterion is needed.
+
+5. **More frequent "No hint available".** No change to the existing
+   behaviour: the message shows, no hint is used up, and the label is
+   unchanged, exactly as today. `[spec §3.7]` — the quoted text ("If no word
+   other than the answer meets all these rules, pressing 'Hint' shows 'No
+   hint available...'. No hint is used up.") does not condition this
+   behaviour on how many hints remain, and the Intent section already states
+   "Nothing else about hints changes... when the button is disabled" as an
+   explicit non-goal for this change. A higher hit rate on an unchanged rule
+   is not a reason to change the rule.
+
+6. **Is 3 a fixed number or a first step?** It stays a fixed, build-time
+   constant. No player-facing setting is added by this change. `[assumed]` —
+   this change's own non-goals already say "Making the number of hints a
+   setting the player can change" is out of scope, and spec section 3.10
+   lists only "Hard mode", "Dark mode" and "High contrast" as switches, so
+   adding a hint-count setting here would be a new feature the spec does not
+   ask for, not an inference from it. A future change can propose the setting
+   on its own merits.
