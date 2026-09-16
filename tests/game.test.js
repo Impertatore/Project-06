@@ -169,6 +169,13 @@ describe('hints', () => {
   test('no hint after the game ends', () => {
     assert.equal(canUseHint(guess(newGame('CRANE'), 'CRANE')), false);
   });
+
+  test('a "no hint available" result uses up no hint and fills no row (spec 3.7, criterion 8)', () => {
+    const game = newGame('CRANE');
+    assert.equal(useHint(game, null), game);
+    assert.equal(game.hintsLeft, HINTS_PER_GAME);
+    assert.equal(game.rows.length, 0);
+  });
 });
 
 describe('hard mode', () => {
