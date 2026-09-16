@@ -161,3 +161,54 @@ player's average is over two different maximums. See open question 1.
 5. Should a new spec round (`docs/spec-7.md`) be authored and promoted before
    the change is implemented, or after it is built and checked? The change
    contradicts round 6 either way.
+
+## Decisions [decided-by-po]
+
+1. **Acceptable, leave it alone.** No note in the Stats panel and no reset
+   prompt is added; the average mixes games played under the old and new
+   limits with no flag. [spec §3.8] "hints per game" is defined only as a
+   plain average to one decimal place, with no mention of versioning by
+   limit, and the change's own non-goals (§2) already rule out migrating or
+   resetting statistics for the old limit — a note or prompt would be a new
+   feature on top of that, not something the spec calls for. Criterion 18
+   stands as written: no reset, no migration.
+
+2. **Yes, the last-row rule stays exactly as it is: a hint is never allowed on
+   row 6.** [spec §3.7] The rule ("only the last row is left, so a hint can
+   never lose the game") is written as a property of rows remaining, not of
+   hints remaining, and the change's non-goals (§2) already say the disabled
+   rule, including the last-row rule, is not being changed. Criteria 6 and 14
+   stand as written; they are not TBD.
+
+3. **Yes, the Help panel text changes with this change, not in a separate
+   one.** [spec §3.11] Help "explains how to play, including … hints", and
+   the change's player-visible behaviour (§3) already commits to the new Help
+   text ("says the player gets 3 hints per game"). Shipping the button text
+   and the stats maximum as "3" while Help still says "2" would make the app
+   contradict itself mid-release, which the spec's own accuracy expectations
+   for Help rule out. Criterion 15 stands as written; it is not TBD.
+
+4. **Use 3 hints and 1.5, matching the new maximum.** [spec §3.8] "hints per
+   game" is an average over games actually played; a manual check that
+   exercises the new maximum (3) is the one that demonstrates the change, and
+   the player-visible behaviour table in §3 of this change spec already gives
+   this exact example ("play one game with 3 hints and one with none → Hints
+   per game shows 1.5"). Keeping the old figures (2 and 1.0) would test
+   nothing about this change. Criterion 16 stands as written; it is not TBD.
+
+5. **Author and promote the new round after the change is built and
+   checked, not before.** [assumed] `docs/spec-current.md`'s own Status line
+   records that rounds 5 and 6 were both written "after the first build", in
+   response to a user request and a bug report against the running app —
+   the established pattern in this project is that a change is built and
+   confirmed first, and the spec round is written to document the change
+   afterwards, not the other way round. Promoting still needs a human, per
+   `CLAUDE.md`'s "Authoring a round and promoting it are separate acts" and
+   this change spec's own §4 statement that authoring/promoting `spec-7.md`
+   "is a human decision and is not part of this change spec" — that step is
+   unaffected by this ordering decision and is not something I am
+   authorising here.
+
+No acceptance criterion in section 5 needed a wording change: criteria 6, 14,
+15, 16 and 18 were each already written to match the answer decided above, so
+none of them was a `TBD` this round.
