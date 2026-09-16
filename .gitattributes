@@ -1,0 +1,4 @@
+# Normalise line endings. Agents run in the Linux dev container while the host
+# shell is pwsh; without this, a file saved on the host side comes back as CRLF
+# and every line of it shows as changed. Everything tracked here is text, LF.
+* text=auto eol=lf
