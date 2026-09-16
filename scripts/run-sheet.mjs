@@ -24,6 +24,7 @@ const PRICES = {
   'claude-opus-5': { in: 5.0, out: 25.0 },
   'claude-sonnet-5': { in: 2.0, out: 10.0 },
   'claude-haiku-4-5': { in: 1.0, out: 5.0 },
+  'claude-fable-5-1': { in: 10.0, out: 50.0 },
 }
 
 function priceFor(model) {
@@ -149,6 +150,50 @@ function spentSoFar(slug) {
 function budgetOf(slug) {
   const start = readLog(slug).find((e) => e.event === 'run_start')
   return start && start.budget_usd ? start.budget_usd : null
+}
+
+// A subagent's conversation is not in the parent transcript. It gets its own
+// file at <session-dir>/subagents/agent-<id>.jsonl, where <session-dir> is the
+// transcript path with .jsonl stripped. Those files carry the usage and the
+// model the subagent actually ran on; the parent transcript carries neither.
+function subagentDir(transcript) {
+  if (!transcript) return null
+  const d = transcript.replace(/\.jsonl$/, '') + '/subagents'
+  return fs.existsSync(d) ? d : null
+}
+
+// Per-file totals for every subagent transcript that exists right now.
+function subagentTotals(transcript) {
+  const dir = subagentDir(transcript)
+  const out = {}
+  if (!dir) return out
+  for (const name of fs.readdirSync(dir)) {
+    if (!name.endsWith('.jsonl')) continue
+    const f = path.join(dir, name)
+    const usage = {}
+    let turns = 0
+    for (const line of fs.readFileSync(f, 'utf8').split('\n')) {
+      if (!line || line.indexOf('"usage"') === -1) continue
+      let e
+      try {
+        e = JSON.parse(line)
+      } catch {
+        continue
+      }
+      const u = e && e.message && e.message.usage
+      if (!u) continue
+      if (e.message.role === 'assistant') turns++
+      const m = e.message.model || 'unknown'
+      if (!usage[m]) usage[m] = { in: 0, out: 0, cache_r: 0, cache_w: 0 }
+      const t = usage[m]
+      t.in += u.input_tokens || 0
+      t.out += u.output_tokens || 0
+      t.cache_r += u.cache_read_input_tokens || 0
+      t.cache_w += u.cache_creation_input_tokens || 0
+    }
+    out[name] = { usage, turns }
+  }
+  return out
 }
 
 function diffUsage(now, before) {
@@ -368,18 +413,45 @@ if (cmd === 'start') {
     // total and overstates a six-agent run by roughly three and a half times.
     const st = paths(slug).state
     const saved = fs.existsSync(st) ? JSON.parse(fs.readFileSync(st, 'utf8')) : {}
-    const key = h.transcript_path || 'unknown'
-    const prev = saved[key] || { usage: {}, turns: 0 }
 
-    const sc = sidechainUsage(h.transcript_path)
-    const attribution = Object.keys(sc).length ? 'sidechain' : 'whole-file'
-    const now = Object.keys(sc).length ? sc : totalUsage(h.transcript_path)
-    const delta = diffUsage(now, prev.usage || {})
+    // Preferred: the subagent's own transcript, which is the only place its
+    // usage and its real model are recorded. Compare every per-agent file
+    // against the last reading and attribute whatever grew - agents run one at
+    // a time, so exactly one file grows per stop.
+    const nowFiles = subagentTotals(h.transcript_path)
+    let delta = {}
+    let turns = null
+    let attribution = 'subagent-file'
 
-    const turnsNow = countTurns(h.transcript_path)
-    const turns = turnsNow == null ? null : turnsNow - (prev.turns || 0)
+    if (Object.keys(nowFiles).length) {
+      const prevFiles = saved.files || {}
+      let turnDelta = 0
+      for (const name of Object.keys(nowFiles)) {
+        const before = (prevFiles[name] || {}).usage || {}
+        const d = diffUsage(nowFiles[name].usage, before)
+        for (const m of Object.keys(d)) {
+          if (!delta[m]) delta[m] = { in: 0, out: 0, cache_r: 0, cache_w: 0 }
+          for (const k of Object.keys(delta[m])) delta[m][k] += d[m][k]
+        }
+        turnDelta += nowFiles[name].turns - ((prevFiles[name] || {}).turns || 0)
+      }
+      turns = turnDelta
+      saved.files = nowFiles
+    } else {
+      // Fallback for a layout without per-agent files: growth of whatever the
+      // hook was handed, which is a proxy for the agent's spend, not a
+      // measurement of it.
+      attribution = 'parent-transcript-delta'
+      const key = h.transcript_path || 'unknown'
+      const prev = saved[key] || { usage: {}, turns: 0 }
+      const sc = sidechainUsage(h.transcript_path)
+      const now = Object.keys(sc).length ? sc : totalUsage(h.transcript_path)
+      delta = diffUsage(now, prev.usage || {})
+      const turnsNow = countTurns(h.transcript_path)
+      turns = turnsNow == null ? null : turnsNow - (prev.turns || 0)
+      saved[key] = { usage: now, turns: turnsNow || 0 }
+    }
 
-    saved[key] = { usage: now, turns: turnsNow || 0 }
     fs.mkdirSync(NOTES, { recursive: true })
     fs.writeFileSync(st, JSON.stringify(saved))
 
