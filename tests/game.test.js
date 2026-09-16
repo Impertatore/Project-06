@@ -154,6 +154,15 @@ describe('hints', () => {
     assert.equal(winMessage(summary.rowsUsed), 'Splendid');
   });
 
+  test('useHint does nothing when no hint word is available', () => {
+    const game = useHint(newGame('CRANE'), 'TRAIN');
+    assert.equal(canUseHint(game), true);
+    assert.equal(useHint(game, null), game);
+    assert.equal(useHint(game, undefined), game);
+    assert.equal(useHint(game, ''), game);
+    assert.equal(game.hintsLeft, HINTS_PER_GAME - 1);
+  });
+
   test('no hint when only the last row is left', () => {
     let game = newGame('CRANE');
     for (let i = 0; i < 5; i++) game = guess(game, 'MOIST');
