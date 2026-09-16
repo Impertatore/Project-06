@@ -225,6 +225,24 @@ function diffUsage(now, before) {
   return out
 }
 
+// Display name only. The full model id stays in the JSONL, because knowing
+// exactly which model ran is the point of recording it at all.
+function shortModel(s) {
+  if (!s) return '-'
+  return s
+    .split(',')
+    .filter(Boolean)
+    .map((m) =>
+      m
+        .trim()
+        .replace(/^claude-/, '')
+        .replace(/-\d{8}$/, '')
+        .replace(/^(opus|sonnet|haiku|fable)-(\d)-(\d)$/, '$1 $2.$3')
+        .replace(/^(opus|sonnet|haiku|fable)-(\d)$/, '$1 $2')
+    )
+    .join(', ')
+}
+
 function money(n) {
   return '$' + n.toFixed(2)
 }
@@ -317,14 +335,15 @@ function render(slug) {
   L.push('')
 
   L.push('## Handoffs', '')
-  L.push('| # | Agent | Status | Verdict | Artefact | PR | Turns | Tokens | Cost | Reason |')
-  L.push('|---|---|---|---|---|---|---|---|---|---|')
+  L.push('| # | Agent | Model | Status | Verdict | Artefact | PR | Turns | Tokens | Cost | Reason |')
+  L.push('|---|---|---|---|---|---|---|---|---|---|---|')
   stops.forEach((e, i) => {
     const t = e.tokens || {}
     const n = (t.in || 0) + (t.out || 0) + (t.cache_r || 0) + (t.cache_w || 0)
     L.push(
       '| ' + (i + 1) +
       ' | ' + e.agent + (e.pass > 1 ? ' (pass ' + e.pass + ')' : '') +
+      ' | ' + shortModel(e.models) +
       ' | ' + (e.status || '-') +
       ' | ' + (e.verdict || '-') +
       ' | ' + (e.artefact || '-') +
@@ -335,7 +354,7 @@ function render(slug) {
       ' | ' + (e.reason || '-') + ' |'
     )
   })
-  if (!stops.length) L.push('| — | _nothing yet_ | | | | | | | | |')
+  if (!stops.length) L.push('| — | _nothing yet_ | | | | | | | | | |')
   L.push('')
 
   const notes = log.filter((e) => ['budget_warn', 'budget_stop', 'note'].includes(e.event))
