@@ -10,9 +10,10 @@
 //   node scripts/run-sheet.mjs render --slug <slug>
 //   node scripts/run-sheet.mjs hook                     # hook JSON on stdin
 //
-// Cost note: agents run sequentially, so an agent's spend is the growth in
-// sidechain usage since the previous agent stopped. If the harness is ever
-// parallelised this attribution stops being correct.
+// Cost note: a subagent's usage is NOT in the parent transcript. It is written
+// to its own file under <session-dir>/subagents/. The hook reads those files
+// and attributes what grew since the last stop. Agents run one at a time, so
+// exactly one file grows per stop; parallelising would break that.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -265,23 +266,28 @@ function render(slug) {
     }
   }
 
-  // An agent the runner announced but never actually invoked - the usual cause
-  // is the run being stopped between the handoff and the call. Show it rather
-  // than leaving a silent gap in the sequence.
+  // An agent whose handoff was recorded but which has produced no stop row is
+  // either working right now, or was never invoked because the run ended first.
+  // Which one it is depends solely on whether the run has been closed, so the
+  // row must not be labelled until that is known.
   const startCount = {}
   for (const e of log.filter((x) => x.event === 'agent_start')) {
     startCount[e.agent] = (startCount[e.agent] || 0) + 1
   }
+  const inFlight = []
   for (const agent of Object.keys(startCount)) {
     const done = stops.filter((s) => s.agent === agent).length
     for (let i = done; i < startCount[agent]; i++) {
+      if (!stop) inFlight.push(agent)
       stops.push({
         agent,
         pass: i + 1,
-        status: 'NOT RUN',
+        status: stop ? 'NOT RUN' : 'RUNNING',
         tokens: {},
         cost_usd: 0,
-        reason: 'handoff recorded, agent never invoked',
+        reason: stop
+          ? 'handoff recorded, agent never invoked'
+          : 'working now',
       })
     }
   }
@@ -294,13 +300,7 @@ function render(slug) {
     tokens += (t.in || 0) + (t.out || 0) + (t.cache_r || 0) + (t.cache_w || 0)
   }
 
-  const running = log
-    .filter((e) => e.event === 'agent_start')
-    .map((e) => e.agent)
-    .filter((a) => !stops.some((s) => s.agent === a))
-
-  const status = stop ? stop.status : running.length ? 'RUNNING' : 'IDLE'
-  const inFlight = stop ? [] : running
+  const status = stop ? stop.status : inFlight.length ? 'RUNNING' : 'IDLE'
   const budget = start ? start.budget_usd : null
   const started = start ? new Date(start.ts) : null
   const ended = stop ? new Date(stop.ts) : new Date()
