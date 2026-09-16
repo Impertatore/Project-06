@@ -21,12 +21,20 @@ automation policy".
 1. **Pin down the change.** Restate it in one sentence, plus what it must
    *not* change. If you were given an issue number, read it with
    `gh issue view <n>` and read `.claude-notes/triage-<n>.md` if it exists.
-2. **Check it against the spec.** `docs/spec-current.md` is the source of truth. If
-   the request contradicts it (for example "3 hints" when the spec says 2),
-   **stop and report the conflict**. Don't decide which one is right.
-   If you were given a change spec from `docs/changes/`, it must be on
-   `origin/main` (merged, so a human approved it) and every open question in
-   it must have an answer. Otherwise stop and say which.
+2. **Check it against the spec.** `docs/spec-current.md` is the source of
+   truth, **as it stands on the branch you are building on** — the architect
+   may have authored and promoted a new round there. Check it out first, then
+   read it.
+
+   If the request still contradicts the spec on that branch, **stop and report
+   the conflict**. Don't decide which one is right, and don't write the round
+   yourself.
+
+   If you were given a change spec from `docs/changes/`, it must be **on your
+   branch** with a `## Decisions` section answering every open question. It
+   does **not** need to be merged: the whole change goes to a human as one PR,
+   and merging that PR is the approval. Stop only if the file is missing or a
+   question is still unanswered, and say which.
 3. **Check the sensitive areas** in `CLAUDE.md`. If the change is behavioural
    in one of them, or its triage verdict is `HUMAN-REQUIRED`, **stop and
    report** unless the request explicitly says a human has approved it.
@@ -38,11 +46,19 @@ and the reason.
 
 1. **Work in a worktree, never in the main checkout.** The human works on
    `main` there.
+   **If the architect already opened a branch for this change, build on it.**
+   That branch carries the change spec, the product-owner's decisions and any
+   new spec round, and it is the branch the single PR points at:
+   ```
+   git fetch origin
+   git worktree add .claude-notes/wt/<slug> agent/<slug>
+   ```
+   Only when there is no such branch do you create one:
    ```
    git fetch origin main
    git worktree add -b <branch> .claude-notes/wt/<slug> origin/main
    ```
-   Name the branch `issue-<n>-<slug>` for an issue, otherwise
+   Name a new branch `issue-<n>-<slug>` for an issue, otherwise
    `agent/<slug>`. The worktree folder uses just `<slug>`, so a `/` in the
    branch name doesn't leave an empty parent folder behind. Run every
    command below from the worktree.
@@ -66,11 +82,18 @@ and the reason.
 
 1. **Push the branch by name:** `git push -u origin <branch>`. Never push
    `main`, `HEAD` or without a branch name, and never force-push.
-2. **Open the PR** with the body in a file (write it with your file tool to
-   `.claude-notes/pr-<slug>.md`):
+2. **Update the PR, or open one if there isn't one.** When the architect
+   already opened a PR for this branch, **do not open a second one**. Add a
+   comment to it instead:
+   `gh pr comment <n> --body-file .claude-notes/pr-<slug>.md`, and widen the
+   title with `gh pr edit <n> --title "<title>"` if it still reads as a
+   spec-only change.
+
+   Only when no PR exists for the branch:
    `gh pr create --base main --head <branch> --title "<title>" --body-file .claude-notes/pr-<slug>.md`.
-   The body has: what changed and why, `Closes #<n>` if there is an issue,
-   the `npm test` result (pass/fail counts), manual checks needed, and
+
+   Either way the body has: what changed and why, `Closes #<n>` if there is an
+   issue, the `npm test` result (pass/fail counts), manual checks needed, and
    anything you noticed but left alone.
 3. **Remove the worktree:** `git worktree remove .claude-notes/wt/<slug>`.
 4. **End with one line:**

@@ -25,12 +25,17 @@ A browser Wordle game built with Vite and plain JavaScript, from
   promoted copy of a numbered round. **Never edit it directly.**
 - `docs/spec-N.md` rounds and `docs/spec-history.md` are a record. Never
   overwrite an earlier round; add a new one.
-- To change the spec: author `docs/spec-<N+1>.md`, get a human to approve it,
-  then copy it over `docs/spec-current.md`, update that file's banner to name
-  the new round, and add a row to `docs/spec-history.md`. Authoring a round and
-  promoting it are separate acts.
-- Agents work on a branch and open a PR to `main`. A human merges. Never push
-  to `main`.
+- To change the spec: author `docs/spec-<N+1>.md`, copy it over
+  `docs/spec-current.md`, update that file's banner to name the new round, and
+  add a row to `docs/spec-history.md`.
+- **The architect may do all of that, but only on a branch**, and only as part
+  of a change that needs the round. The human's approval is the merge. Nothing
+  else — no other agent, and no direct commit to `main` — may touch
+  `docs/spec-current.md` or add a round.
+- **One change, one branch, one PR.** The architect opens it; the
+  product-owner, implementer and tester commit to the same branch. A human
+  merges once, with the spec round, the decisions, the code and the tests all
+  visible in one diff. Never push to `main`.
 - Agent scratch output (triage sheets, review sheets, worktrees) goes in
   `.claude-notes/`, which is git-ignored.
 - Agents run in the dev container (bash). The host shell is pwsh. Pass long

@@ -47,12 +47,16 @@ a retelling of it. Each agent reads its own input:
 
 | Agent | Give it | It produces |
 |---|---|---|
-| architect | The description, or the issue number | `docs/changes/<slug>.md` + a docs-only PR |
-| product-owner | `docs/changes/<slug>.md` | A `## Decisions` section on the same file |
-| implementer | `docs/changes/<slug>.md` | A branch and a PR |
-| tester | The PR number | Tests added to that PR |
+| architect | The description, or the issue number | Branch `agent/<slug>`, `docs/changes/<slug>.md`, a new spec round if needed, and **the one PR** |
+| product-owner | `docs/changes/<slug>.md` and the branch | A `## Decisions` section, committed to that branch |
+| implementer | `docs/changes/<slug>.md` and the branch | Code and tests on the same branch |
+| tester | The PR number and the branch | Tests added to the same branch |
 | reviewer | The PR number | A triage sheet in `.claude-notes/` |
 | security-analyst | The PR number | A findings report |
+
+**One change, one branch, one PR.** The architect opens the PR; nobody opens a
+second. Tell each agent the branch name explicitly. A human merges once at the
+end, seeing the spec round, decisions, code and tests in a single diff.
 
 After each agent returns, read its `RESULT` line and record it:
 

@@ -40,6 +40,12 @@ hard.
 
 1. **Read the change spec** at `docs/changes/<slug>.md`, section
    **Open questions**.
+**Cite what the architect quoted.** Where it quoted spec text for a question,
+tag your answer `[spec §N]` with that section number - you do not need to open
+the spec to cite what is already in front of you. Use `[assumed]` only where
+the architect wrote "spec is silent". A run where everything is `[assumed]`
+means you are not using the quotes you were given.
+
 2. **Answer every question, in order.** For each one write:
    - the decision, in one or two plain sentences
    - the rung: `[spec §N]`, `[assumed]`, or `[needs-new-round]`
