@@ -3,7 +3,7 @@
 A Wordle game that runs in a desktop browser. Built from [docs/spec-current.md](docs/spec-current.md).
 
 - 6 rows to find a hidden 5-letter word, with a new random answer every game.
-- 2 hints per game. A hint fills your next row with a word that keeps your green letters in place, uses your yellow ones, and always finds something new.
+- 3 hints per game. A hint fills your next row with a word that keeps your green letters in place, uses your yellow ones, and always finds something new.
 - Statistics and settings are kept in the browser's local storage.
 - Hard mode, dark mode, high contrast, sharing, help, and full keyboard and screen reader support.
 
