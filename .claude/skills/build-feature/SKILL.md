@@ -113,6 +113,10 @@ Then report to the person, in this order:
 
 ## Not your job
 
+- **Never ask the user whether to go over budget.** A `PreToolUse` guard
+  blocks a new agent once the run budget is spent and tells you to close the
+  run. Obey it: record `run_stop`, report what was completed, and stop. Money
+  is a guardrail, not a conversation.
 - **Never merge.** Not the spec PR, not the feature PR. A human merges, always.
 - **Never push to `main`.** The permission rules block it; do not work around
   them.

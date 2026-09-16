@@ -1,5 +1,13 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          { "type": "command", "command": "node scripts/run-sheet.mjs guard" }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "matcher": "*",

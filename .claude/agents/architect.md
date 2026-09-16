@@ -36,6 +36,11 @@ Read `CLAUDE.md` first.
       section or criterion number, and whether it needs a new spec round.
       Also say whether saved player data (statistics, settings) is affected.
       "None" if none.
+      **Quote the spec text in full, not just the section number.** The
+      product-owner answers your open questions from this file alone and must
+      not have to open `docs/spec-current.md` to do it. Do the same for every
+      open question in section 6: quote the spec text that bears on it, or
+      write "spec is silent" if there is none.
    5. **Acceptance criteria:** a numbered list. Each one is checkable by
       `npm test`, reading the code, or a named manual step like those in
       section 5 of the spec.

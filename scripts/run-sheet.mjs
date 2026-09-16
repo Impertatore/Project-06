@@ -122,6 +122,35 @@ function totalUsage(transcript) {
   return totals
 }
 
+// A turn is one assistant message. Counting them tells you whether an agent is
+// near its maxTurns cap, which is the signal that it is thrashing.
+function countTurns(transcript) {
+  if (!transcript || !fs.existsSync(transcript)) return null
+  let n = 0
+  for (const line of fs.readFileSync(transcript, 'utf8').split('\n')) {
+    if (!line || line.indexOf('"role":"assistant"') === -1) continue
+    try {
+      const e = JSON.parse(line)
+      if (e && e.message && e.message.role === 'assistant') n++
+    } catch {
+      continue
+    }
+  }
+  return n
+}
+
+// What the run has cost so far, from the rows already recorded.
+function spentSoFar(slug) {
+  return readLog(slug)
+    .filter((e) => e.event === 'agent_stop')
+    .reduce((sum, e) => sum + (e.cost_usd || 0), 0)
+}
+
+function budgetOf(slug) {
+  const start = readLog(slug).find((e) => e.event === 'run_start')
+  return start && start.budget_usd ? start.budget_usd : null
+}
+
 function diffUsage(now, before) {
   const out = {}
   for (const m of Object.keys(now)) {
@@ -179,6 +208,27 @@ function render(slug) {
     }
   }
 
+  // An agent the runner announced but never actually invoked - the usual cause
+  // is the run being stopped between the handoff and the call. Show it rather
+  // than leaving a silent gap in the sequence.
+  const startCount = {}
+  for (const e of log.filter((x) => x.event === 'agent_start')) {
+    startCount[e.agent] = (startCount[e.agent] || 0) + 1
+  }
+  for (const agent of Object.keys(startCount)) {
+    const done = stops.filter((s) => s.agent === agent).length
+    for (let i = done; i < startCount[agent]; i++) {
+      stops.push({
+        agent,
+        pass: i + 1,
+        status: 'NOT RUN',
+        tokens: {},
+        cost_usd: 0,
+        reason: 'handoff recorded, agent never invoked',
+      })
+    }
+  }
+
   let total = 0
   let tokens = 0
   for (const e of stops) {
@@ -193,6 +243,7 @@ function render(slug) {
     .filter((a) => !stops.some((s) => s.agent === a))
 
   const status = stop ? stop.status : running.length ? 'RUNNING' : 'IDLE'
+  const inFlight = stop ? [] : running
   const budget = start ? start.budget_usd : null
   const started = start ? new Date(start.ts) : null
   const ended = stop ? new Date(stop.ts) : new Date()
@@ -201,7 +252,7 @@ function render(slug) {
   const L = []
   L.push('# Run: ' + slug, '')
   L.push('| | |', '|---|---|')
-  L.push('| **Status** | ' + status + (running.length ? ' (' + running.join(', ') + ')' : '') + ' |')
+  L.push('| **Status** | ' + status + (inFlight.length ? ' (' + inFlight.join(', ') + ')' : '') + ' |')
   if (stop) L.push('| **Stopped at** | ' + (stop.at || '-') + ' — ' + (stop.reason || '-') + ' |')
   L.push('| **Cost** | ' + money(total) + (budget ? ' of ' + money(budget) + ' budget' : '') + ' |')
   L.push('| **Tokens** | ' + tok(tokens) + ' |')
@@ -209,8 +260,8 @@ function render(slug) {
   L.push('')
 
   L.push('## Handoffs', '')
-  L.push('| # | Agent | Status | Verdict | Artefact | Turns | Tokens | Cost | Reason |')
-  L.push('|---|---|---|---|---|---|---|---|---|')
+  L.push('| # | Agent | Status | Verdict | Artefact | PR | Turns | Tokens | Cost | Reason |')
+  L.push('|---|---|---|---|---|---|---|---|---|---|')
   stops.forEach((e, i) => {
     const t = e.tokens || {}
     const n = (t.in || 0) + (t.out || 0) + (t.cache_r || 0) + (t.cache_w || 0)
@@ -220,20 +271,21 @@ function render(slug) {
       ' | ' + (e.status || '-') +
       ' | ' + (e.verdict || '-') +
       ' | ' + (e.artefact || '-') +
+      ' | ' + (e.pr && e.pr !== '-' ? '[#' + String(e.pr).split('/').pop() + '](' + e.pr + ')' : '-') +
       ' | ' + (e.turns == null ? '-' : e.turns) +
       ' | ' + tok(n) +
       ' | ' + money(e.cost_usd || 0) +
       ' | ' + (e.reason || '-') + ' |'
     )
   })
-  if (!stops.length) L.push('| — | _nothing yet_ | | | | | | | |')
+  if (!stops.length) L.push('| — | _nothing yet_ | | | | | | | | |')
   L.push('')
 
   const notes = log.filter((e) => ['budget_warn', 'budget_stop', 'note'].includes(e.event))
   if (notes.length) {
     L.push('## Notes', '')
     for (const e of notes) {
-      L.push('- `' + e.ts + '` **' + e.event + '** — ' + (e.reason || e.message || ''))
+      L.push('- `' + e.ts + '` **' + e.event + '** — ' + (e.reason || e.message || e.text || ''))
     }
     L.push('')
   }
@@ -341,12 +393,43 @@ if (cmd === 'start') {
       tokens: sum,
       cost_usd: Number(cost.toFixed(4)),
       models: Object.keys(delta).join(','),
+      turns: attribution === 'whole-file' ? countTurns(h.transcript_path) : null,
       attribution,
       transcript: h.transcript_path || '-',
     })
+    const budget = budgetOf(slug)
+    const spent = spentSoFar(slug)
+    if (budget && spent >= budget) {
+      append(slug, {
+        event: 'budget_stop',
+        reason: 'Budget of $' + budget.toFixed(2) + ' spent ($' + spent.toFixed(2) + '). No further agent may start.',
+      })
+    } else if (budget && spent >= budget * 0.8) {
+      append(slug, {
+        event: 'budget_warn',
+        reason: '$' + spent.toFixed(2) + ' of $' + budget.toFixed(2) + ' spent.',
+      })
+    }
     render(slug)
   })
+} else if (cmd === 'guard') {
+  // PreToolUse hook on the Agent tool. Denies a new agent once the run budget
+  // is spent, so the orchestrator never has to ask a human about money.
+  // Exit 2 blocks the call; the reason text goes back to the model.
+  const slug = fs.existsSync(CURRENT) ? fs.readFileSync(CURRENT, 'utf8').trim() : ''
+  if (!slug) process.exit(0)
+  const budget = budgetOf(slug)
+  const spent = spentSoFar(slug)
+  if (!budget || spent < budget) process.exit(0)
+  process.stderr.write(
+    'Run budget exhausted: $' + spent.toFixed(2) + ' spent of a $' + budget.toFixed(2) +
+    ' budget. Do not start another agent and do not ask the user whether to ' +
+    'continue. Close the run with: node scripts/run-sheet.mjs stop --slug ' +
+    slug + ' --status STOPPED --at <last agent> --reason "budget exhausted", ' +
+    'then report what was completed.\n'
+  )
+  process.exit(2)
 } else {
-  console.error('usage: run-sheet.mjs start|event|stop|render|usage|hook')
+  console.error('usage: run-sheet.mjs start|event|stop|render|usage|hook|guard')
   process.exit(1)
 }
