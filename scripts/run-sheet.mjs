@@ -179,6 +179,7 @@ function subagentTotals(transcript) {
     // each, which holds the final usage.
     const byId = new Map()
     let seq = 0
+    let agentName = null
     for (const line of fs.readFileSync(f, 'utf8').split('\n')) {
       if (!line || line.indexOf('"usage"') === -1) continue
       let e
@@ -187,6 +188,7 @@ function subagentTotals(transcript) {
       } catch {
         continue
       }
+      if (e && e.attributionAgent && !agentName) agentName = e.attributionAgent
       const msg = e && e.message
       if (!msg || !msg.usage || msg.role !== 'assistant') continue
       byId.set(msg.id || 'anon-' + seq++, {
@@ -204,7 +206,7 @@ function subagentTotals(transcript) {
       t.cache_r += u.cache_read_input_tokens || 0
       t.cache_w += u.cache_creation_input_tokens || 0
     }
-    out[name] = { usage, turns: byId.size }
+    out[name] = { usage, turns: byId.size, agent: agentName }
   }
   return out
 }
@@ -453,20 +455,37 @@ if (cmd === 'start') {
     let delta = {}
     let turns = null
     let attribution = 'subagent-file'
+    let fileAgent = null
 
     if (Object.keys(nowFiles).length) {
+      // Several files can grow between two stops: the agent that just finished,
+      // plus the tail of the previous one still being flushed. Summing them all
+      // is what made a single agent report two different models. Attribute the
+      // file that grew most - that is the agent that just ran - and take its
+      // name and model from the file itself rather than from the orchestrator.
       const prevFiles = saved.files || {}
-      let turnDelta = 0
+      let best = null
       for (const name of Object.keys(nowFiles)) {
         const before = (prevFiles[name] || {}).usage || {}
         const d = diffUsage(nowFiles[name].usage, before)
+        let size = 0
         for (const m of Object.keys(d)) {
-          if (!delta[m]) delta[m] = { in: 0, out: 0, cache_r: 0, cache_w: 0 }
-          for (const k of Object.keys(delta[m])) delta[m][k] += d[m][k]
+          size += (d[m].in || 0) + (d[m].out || 0) + (d[m].cache_r || 0) + (d[m].cache_w || 0)
         }
-        turnDelta += nowFiles[name].turns - ((prevFiles[name] || {}).turns || 0)
+        if (size && (!best || size > best.size)) {
+          best = {
+            size,
+            delta: d,
+            turns: nowFiles[name].turns - ((prevFiles[name] || {}).turns || 0),
+            agent: nowFiles[name].agent,
+          }
+        }
       }
-      turns = turnDelta
+      if (best) {
+        delta = best.delta
+        turns = best.turns
+        if (best.agent) fileAgent = best.agent
+      }
       saved.files = nowFiles
     } else {
       // Fallback for a layout without per-agent files: growth of whatever the
@@ -494,7 +513,7 @@ if (cmd === 'start') {
     }
     append(slug, {
       event: 'agent_stop',
-      agent: process.env.HARNESS_AGENT || h.agent_type || openAgent(slug) || 'unknown',
+      agent: fileAgent || process.env.HARNESS_AGENT || h.agent_type || openAgent(slug) || 'unknown',
       tokens: sum,
       cost_usd: Number(cost.toFixed(4)),
       models: Object.keys(delta).join(','),
