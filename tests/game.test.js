@@ -4,6 +4,7 @@ import {
   addLetter,
   canUseHint,
   gameSummary,
+  HINTS_PER_GAME,
   keyStates,
   newGame,
   quitGame,
@@ -114,26 +115,49 @@ describe('winning and losing', () => {
 });
 
 describe('hints', () => {
+  test('a new game starts with three hints', () => {
+    assert.equal(HINTS_PER_GAME, 3);
+    assert.equal(newGame('CRANE').hintsLeft, 3);
+  });
+
   test('a hint fills the current row, replacing typed letters', () => {
     const game = useHint(type(newGame('CRANE'), 'cr'), 'TRAIN');
     assert.equal(game.rows[0].word, 'TRAIN');
     assert.equal(game.rows[0].hint, true);
     assert.equal(game.current, '');
-    assert.equal(game.hintsLeft, 1);
+    assert.equal(game.hintsLeft, HINTS_PER_GAME - 1);
   });
 
-  test('only two hints per game', () => {
+  test('only three hints per game', () => {
     let game = useHint(newGame('CRANE'), 'TRAIN');
     game = useHint(game, 'SLATE');
+    assert.equal(game.hintsLeft, 1);
+    assert.equal(canUseHint(game), true);
+    game = useHint(game, 'PLACE');
     assert.equal(game.hintsLeft, 0);
+    assert.equal(game.rows.length, 3);
+    assert.ok(game.rows.every((row) => row.hint));
     assert.equal(canUseHint(game), false);
-    assert.equal(useHint(game, 'PLACE'), game);
+    assert.equal(useHint(game, 'BRINE'), game);
+  });
+
+  test('three hints then a winning guess counts as four rows used', () => {
+    let game = useHint(newGame('CRANE'), 'TRAIN');
+    game = useHint(game, 'SLATE');
+    game = useHint(game, 'PLACE');
+    game = guess(game, 'CRANE');
+    const summary = gameSummary(game);
+    assert.equal(summary.result, 'won');
+    assert.equal(summary.hints, 3);
+    assert.equal(summary.guesses, 1);
+    assert.equal(summary.rowsUsed, 4);
+    assert.equal(winMessage(summary.rowsUsed), 'Splendid');
   });
 
   test('no hint when only the last row is left', () => {
     let game = newGame('CRANE');
     for (let i = 0; i < 5; i++) game = guess(game, 'MOIST');
-    assert.equal(game.hintsLeft, 2);
+    assert.equal(game.hintsLeft, HINTS_PER_GAME);
     assert.equal(canUseHint(game), false);
   });
 
