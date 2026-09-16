@@ -2,6 +2,10 @@
 
 A record of how the spec was built, round by round, for the demo.
 
+The **promoted** round is 6: [spec-current.md](spec-current.md) is a verbatim
+copy of [spec-6.md](spec-6.md) and is what the agents and skills read. When a
+new round is approved, copy it over `spec-current.md` and update this line.
+
 | Round | Input | Output | `[assumed]` tags | Open questions |
 |---|---|---|---|---|
 | 1 | Original prompt + [spec.notes.md](spec.notes.md) | [spec-1.md](spec-1.md) | 28 | 11, all open |

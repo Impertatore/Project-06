@@ -1,7 +1,7 @@
 # Wordle Practice
 
 A browser Wordle game built with Vite and plain JavaScript, from
-[docs/spec-6.md](docs/spec-6.md). See [README.md](README.md) for the layout.
+[docs/spec-current.md](docs/spec-current.md). See [README.md](README.md) for the layout.
 
 ## Commands
 
@@ -16,13 +16,19 @@ A browser Wordle game built with Vite and plain JavaScript, from
 - `src/logic/` is pure, browser-free logic and is what `tests/` covers.
 - `src/main.js`, `src/style.css` and `index.html` (UI, focus, themes,
   animations) have **no automated tests**. Changes there need the manual checks
-  in section 5 of `docs/spec-6.md`.
+  in section 5 of `docs/spec-current.md`.
 - There is no CI. A local `npm test` run is the only evidence a change works.
 
 ## Conventions
 
+- `docs/spec-current.md` is the spec every agent, skill and doc reads. It is a
+  promoted copy of a numbered round. **Never edit it directly.**
 - `docs/spec-N.md` rounds and `docs/spec-history.md` are a record. Never
   overwrite an earlier round; add a new one.
+- To change the spec: author `docs/spec-<N+1>.md`, get a human to approve it,
+  then copy it over `docs/spec-current.md`, update that file's banner to name
+  the new round, and add a row to `docs/spec-history.md`. Authoring a round and
+  promoting it are separate acts.
 - Agents work on a branch and open a PR to `main`. A human merges. Never push
   to `main`.
 - Agent scratch output (triage sheets, review sheets, worktrees) goes in

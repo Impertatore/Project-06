@@ -131,7 +131,7 @@
     <h2>The relay</h2>
     <div class="scroll">
       <figure>
-        <svg viewBox="0 0 960 850" role="img" aria-label="Swimlane flow: you describe a change; the architect opens a spec PR; you approve it; the implementer opens a PR; the tester adds tests; the reviewer and security analyst report; you triage; pr-fix pushes after your yes; pr-review posts; you merge. The implementer stops and hands back if the request conflicts with spec-6.">
+        <svg viewBox="0 0 960 850" role="img" aria-label="Swimlane flow: you describe a change; the architect opens a spec PR; you approve it; the implementer opens a PR; the tester adds tests; the reviewer and security analyst report; you triage; pr-fix pushes after your yes; pr-review posts; you merge. The implementer stops and hands back if the request conflicts with the spec.">
           <defs>
             <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
@@ -156,7 +156,7 @@
 
           <!-- stop route: implementer back to you -->
           <path d="M800,320 H900 V34 H130 V54" fill="none" stroke="#c4574e" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#ahStop)"/>
-          <text x="916" y="180" transform="rotate(90 916 180)" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-size="12" fill="#c4574e">stops if it conflicts with spec-6</text>
+          <text x="916" y="180" transform="rotate(90 916 180)" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-size="12" fill="#c4574e">stops if it conflicts with the spec</text>
 
           <!-- arrows -->
           <g fill="none" stroke="currentColor" stroke-width="1.6" marker-end="url(#ah)">
@@ -249,7 +249,7 @@
       <table>
         <thead><tr><th>From → to</th><th>Hands over</th><th>Where it lives</th></tr></thead>
         <tbody>
-          <tr><td><span class="who"><i class="dot g"></i>architect → you</span></td><td>Change spec with Spec-6 impact and numbered open questions</td><td><code>docs/changes/&lt;slug&gt;.md</code> in a docs-only PR</td></tr>
+          <tr><td><span class="who"><i class="dot g"></i>architect → you</span></td><td>Change spec with Spec impact and numbered open questions</td><td><code>docs/changes/&lt;slug&gt;.md</code> in a docs-only PR</td></tr>
           <tr><td><span class="who"><i class="dot y"></i>you → implementer</span></td><td>Merged spec with answers, or a small clear request</td><td><code>origin/main</code> · the chat</td></tr>
           <tr><td><span class="who"><i class="dot g"></i>implementer → tester, reviewer</span></td><td>An open PR, test counts, manual checks needed</td><td>Branch <code>agent/&lt;slug&gt;</code> · PR body</td></tr>
           <tr><td><span class="who"><i class="dot g"></i>tester → reviewer</span></td><td>Test commits and which break made each one fail</td><td>The same PR branch · PR body</td></tr>
@@ -268,7 +268,7 @@
     <h2>The RESULT line</h2>
     <p>Every agent ends with one line in a fixed shape. The main chat relays it to you as is, and a future orchestrator could read it without parsing prose.</p>
     <div class="results">
-      <div class="result"><b>architect</b><code>RESULT | spec=docs/changes/&lt;slug&gt;.md | pr=&lt;url&gt; | assumptions=&lt;k&gt; | open-questions=&lt;k&gt; | spec-6-conflicts=&lt;k&gt;</code></div>
+      <div class="result"><b>architect</b><code>RESULT | spec=docs/changes/&lt;slug&gt;.md | pr=&lt;url&gt; | assumptions=&lt;k&gt; | open-questions=&lt;k&gt; | spec-conflicts=&lt;k&gt;</code></div>
       <div class="result"><b>implementer</b><code>RESULT | pr=&lt;url&gt; | branch=&lt;branch&gt; | tests=&lt;pass&gt;/&lt;total&gt; | manual-checks=&lt;ids&gt;</code></div>
       <div class="result"><b>tester</b><code>RESULT | mode=&lt;pr|gap&gt; | target=… | tests-added=&lt;k&gt; | proven-failing=&lt;k&gt;/&lt;k&gt; | possible-bugs=&lt;k&gt;</code></div>
       <div class="result"><b>reviewer</b><code>RESULT | target=PR #&lt;n&gt; | verdict=&lt;A|S|B&gt; | automation=&lt;…&gt; | comments=&lt;k&gt; | blocking=&lt;b&gt;</code></div>
@@ -297,7 +297,7 @@
       <div class="run">
         <h3>Refused · 3 hints per game</h3>
         <div class="row"><span class="step g">implementer</span><span class="step y">stopped</span></div>
-        <p>Conflicts with spec-6 (2 hints). No branch, no PR. Exactly the dashed arrow above.</p>
+        <p>Conflicts with the spec (2 hints). No branch, no PR. Exactly the dashed arrow above.</p>
       </div>
     </div>
   </section>

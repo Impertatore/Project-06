@@ -33,7 +33,7 @@ tests use Node's built-in runner (`node:test`, `node:assert/strict`), live in
    Run every command below from the worktree.
 
 2. **List the behaviours before writing anything.** For each one, give the
-   source (`file:line`) and the rule it follows: `docs/spec-6.md` section, the
+   source (`file:line`) and the rule it follows: `docs/spec-current.md` section, the
    PR description, or the code's own comments. Read the existing tests and
    leave out behaviours an assertion already covers. Say which ones those are.
 
@@ -44,7 +44,7 @@ tests use Node's built-in runner (`node:test`, `node:assert/strict`), live in
      test file (including one that throws, to cover the guarded paths).
    - `src/main.js`, `src/style.css` and `index.html` can't be tested here.
      List what you would have tested and the manual check from section 5 of
-     `docs/spec-6.md` that covers it instead.
+     `docs/spec-current.md` that covers it instead.
    - **Never change app code to make it testable.** If you can't reach a
      behaviour without changing code, report that.
 

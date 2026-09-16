@@ -1,6 +1,6 @@
 # Wordle Practice
 
-A Wordle game that runs in a desktop browser. Built from [docs/spec-6.md](docs/spec-6.md).
+A Wordle game that runs in a desktop browser. Built from [docs/spec-current.md](docs/spec-current.md).
 
 - 6 rows to find a hidden 5-letter word, with a new random answer every game.
 - 2 hints per game. A hint fills your next row with a word that keeps your green letters in place, uses your yellow ones, and always finds something new.
@@ -53,4 +53,4 @@ With `npm run dev` only, add `?answer=CRANE` to the address to fix the answer fo
 
 ## Manual checks
 
-The acceptance criteria are in section 5 of [docs/spec-6.md](docs/spec-6.md). Most are manual steps to run in Chrome, Firefox and Edge.
+The acceptance criteria are in section 5 of [docs/spec-current.md](docs/spec-current.md). Most are manual steps to run in Chrome, Firefox and Edge.

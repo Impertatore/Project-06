@@ -18,7 +18,7 @@ automation policy".
 1. **Pin down the change.** Restate it in one sentence, plus what it must
    *not* change. If you were given an issue number, read it with
    `gh issue view <n>` and read `.claude-notes/triage-<n>.md` if it exists.
-2. **Check it against the spec.** `docs/spec-6.md` is the source of truth. If
+2. **Check it against the spec.** `docs/spec-current.md` is the source of truth. If
    the request contradicts it (for example "3 hints" when the spec says 2),
    **stop and report the conflict**. Don't decide which one is right.
    If you were given a change spec from `docs/changes/`, it must be on
@@ -47,7 +47,7 @@ A stop is a valid result. Report it with `RESULT | stopped=<reason>`.
    it **fails** before your change. Then make the change and confirm it
    passes.
 3. **UI changes (`src/main.js`, `src/style.css`, `index.html`)** have no
-   automated tests. Name the manual check from section 5 of `docs/spec-6.md`
+   automated tests. Name the manual check from section 5 of `docs/spec-current.md`
    that covers them, in the PR body.
 4. **Make the smallest change that does the job.** Keep player-visible text,
    `README.md` and tests consistent with the change. No refactors or tidying

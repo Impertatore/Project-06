@@ -128,7 +128,7 @@ Do the following, in order:
    The tests cover `src/logic/` and the word lists only. A change to
    `src/main.js`, `src/style.css` or `index.html` is **not** covered by a green
    run. Say so in `Tests:`, and name the manual check from section 5 of
-   `docs/spec-6.md` that would cover it.
+   `docs/spec-current.md` that would cover it.
 
 4. **Draft candidate comments** following "Writing the comments" below.
 

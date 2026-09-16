@@ -66,7 +66,7 @@ use a remembered copy.
    callers across `src/`, `index.html`, `tests/` and `scripts/`. Note shared
    logic used in several places (for example `scoreGuess` feeds the board,
    the keyboard, hints, hard mode and share text).
-4. **Compare with the spec.** `docs/spec-6.md` is the source of truth for
+4. **Compare with the spec.** `docs/spec-current.md` is the source of truth for
    intended behaviour. Find the section that covers the reported behaviour
    and quote it. Say which case this is: the code disagrees with the spec
    (a bug), the spec is silent or ambiguous (a decision for a human), or the
@@ -120,7 +120,7 @@ Reading the code tells you what *should* happen. Only a run tells you what
    the worktree itself for the next issue.
 
 For a UI-only symptom, you may confirm it by reading the code together with
-the manual step in section 5 of `docs/spec-6.md` that covers it. Don't start
+the manual step in section 5 of `docs/spec-current.md` that covers it. Don't start
 a dev server on a fixed port.
 
 ### Step 5 — Assess, in two parts
@@ -165,7 +165,7 @@ answer, licence text, or something every game shows → at least `medium`.
 - **New regression test needed:** yes or no. If Step 4 produced a failing
   test, that's it.
 - **Untestable parts:** anything in `src/main.js`, `src/style.css` or
-  `index.html`, plus the manual check from `docs/spec-6.md` section 5.
+  `index.html`, plus the manual check from `docs/spec-current.md` section 5.
 
 #### Scoped verdict
 
@@ -261,7 +261,7 @@ Repo: OWNER/REPO · Skill: triage <version> · Date: <YYYY-MM-DD HH:mm> · Code 
 - Reported symptom: <…>
 - Suggested cause (from the issue): <… or "none given">
 - Root cause found: <file:line, one sentence, or "not found">
-- Spec: <docs/spec-6.md section, quoted | spec is silent> → <code disagrees with spec | spec ambiguous | code matches spec>
+- Spec: <docs/spec-current.md section, quoted | spec is silent> → <code disagrees with spec | spec ambiguous | code matches spec>
 - Recent changes: <git log lines for the files, or "none since initial build">
 
 
@@ -360,7 +360,7 @@ real verdicts.
 ## Changelog
 - **1.2.0**: Moved from nopCommerce to Wordle Practice. Reproduction tests
   are now `node:test` files in the worktree's `tests/`, run with `node --test`.
-  The upstream-diff check is replaced by a comparison with `docs/spec-6.md`.
+  The upstream-diff check is replaced by a comparison with `docs/spec-current.md`.
   Risk and relied-on behaviour are now about players' saved data, scoring,
   share text and the word-list licence. Issues branch off `main` and come back
   by PR. Calibration stops if this repo has no cases yet.

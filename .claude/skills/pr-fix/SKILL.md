@@ -134,7 +134,7 @@ the churn this skill exists to avoid. Sync a PR when:
      `node:test` and `node:assert/strict` like the tests next to it. If the
      behaviour only shows in `src/main.js`, `src/style.css` or `index.html`,
      which this repo has no tests for, say plainly that no automated test
-     covers it and name the manual check from section 5 of `docs/spec-6.md`
+     covers it and name the manual check from section 5 of `docs/spec-current.md`
      instead.
    - **Commit the group.** The subject line is
      `Fix <slug>: <one-line fix>`. The body lists the comments it addresses
