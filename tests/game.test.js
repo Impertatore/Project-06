@@ -5,6 +5,7 @@ import {
   canUseHint,
   gameSummary,
   HINTS_PER_GAME,
+  hintsUsed,
   keyStates,
   newGame,
   quitGame,
@@ -158,6 +159,35 @@ describe('hints', () => {
     assert.equal(summary.rowsUsed, 4);
     assert.equal(summary.hints, 3);
     assert.equal(summary.guesses, 1);
+  });
+
+  test('hintsUsed reports all three hints once every hint is used', () => {
+    let game = useHint(newGame('CRANE'), 'TRAIN');
+    game = useHint(game, 'SLATE');
+    game = useHint(game, 'PLACE');
+    assert.equal(hintsUsed(game), 3);
+  });
+
+  test('rows 4-6 stay usable for guesses after three hints on rows 1-3', () => {
+    let game = useHint(newGame('CRANE'), 'TRAIN');
+    game = useHint(game, 'SLATE');
+    game = useHint(game, 'PLACE');
+    game = guess(game, 'MOIST');
+    assert.equal(game.rows.length, 4);
+    assert.equal(game.status, 'playing');
+  });
+
+  test('a lost game after three hints still reports three hints used', () => {
+    let game = useHint(newGame('CRANE'), 'TRAIN');
+    game = useHint(game, 'SLATE');
+    game = useHint(game, 'PLACE');
+    game = guess(game, 'MOIST');
+    game = guess(game, 'MOIST');
+    game = guess(game, 'MOIST');
+    const summary = gameSummary(game);
+    assert.equal(summary.result, 'lost');
+    assert.equal(summary.hints, 3);
+    assert.equal(summary.guesses, 3);
   });
 
   test('no hint when only the last row is left', () => {
