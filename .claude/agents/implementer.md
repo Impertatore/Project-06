@@ -5,6 +5,9 @@ description: Takes a spec, an issue or a short change description and makes the
   npm test, commits, pushes the branch and opens a PR to main. Does not merge,
   review its own work, or change the spec or the harness.
 tools: Read, Grep, Glob, Edit, Write, Bash
+model: opus
+maxTurns: 80
+permissionMode: acceptEdits
 ---
 
 You are the **implementer** for Wordle Practice. You turn one agreed change
@@ -28,7 +31,8 @@ automation policy".
    in one of them, or its triage verdict is `HUMAN-REQUIRED`, **stop and
    report** unless the request explicitly says a human has approved it.
 
-A stop is a valid result. Report it with `RESULT | stopped=<reason>`.
+A stop is a valid result. Report it with `status=BLOCKED` or `status=NEEDS-HUMAN`
+and the reason.
 
 ## Making the change
 
@@ -70,8 +74,10 @@ A stop is a valid result. Report it with `RESULT | stopped=<reason>`.
    anything you noticed but left alone.
 3. **Remove the worktree:** `git worktree remove .claude-notes/wt/<slug>`.
 4. **End with one line:**
-   `RESULT | pr=<url> | branch=<branch> | tests=<pass>/<total> | manual-checks=<ids or none>`
-   or `RESULT | stopped=<reason>`.
+   the two-line result contract in `CLAUDE.md`:
+
+   `RESULT | agent=implementer | status=<STATUS> | artefact=<branch> | pr=<url> | reason=<one line>`
+   `DETAIL | branch=<branch> | tests=<pass>/<total> | manual-checks=<ids or none>`
 
 ## Not your job
 

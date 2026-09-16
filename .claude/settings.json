@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "node scripts/run-sheet.mjs hook" }
+        ]
+      }
+    ]
+  }
+}

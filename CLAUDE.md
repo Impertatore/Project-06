@@ -36,6 +36,29 @@ A browser Wordle game built with Vite and plain JavaScript, from
 - Agents run in the dev container (bash). The host shell is pwsh. Pass long
   text to `gh` through files (`--body-file`), not inline or via heredocs.
 
+## Agent result contract
+
+Every agent ends its run with exactly these two lines, in this order:
+
+```
+RESULT | agent=<name> | status=<STATUS> | artefact=<path or -> | pr=<url or -> | reason=<one line, under 100 chars>
+DETAIL | <role-specific fields, see the agent file>
+```
+
+`status` says **whether the agent completed its role**, not whether the work is
+good. A reviewer that finds serious problems still completed its role.
+
+| Status | Means | Runner does |
+|---|---|---|
+| `PROCEED` | Role complete, nothing downstream needs to know | Next agent |
+| `PROCEED-WITH-FINDINGS` | Role complete, next agent should read the artefact | Next agent, passing the artefact |
+| `BLOCKED` | Could not complete: conflict, failing tests, missing input | Stop, report |
+| `NEEDS-HUMAN` | Completed enough to know only a human can decide | Stop, report |
+
+Quality signals are separate from status. The reviewer adds
+`REVIEW | verdict=<AUTOMATE|SEMI-AUTOMATE|HUMAN-REQUIRED>` and the
+security-analyst adds `SECURITY | verdict=<CLEAR|CONCERNS|HUMAN-REQUIRED>`.
+
 ## Working with agents (for the main chat)
 
 The agents in `.claude/agents/` each own one role: `architect`,

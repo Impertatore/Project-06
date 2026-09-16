@@ -4,6 +4,9 @@ description: Looks at a PR, a file or the whole repo through a defender's lens,
   using the security-analyst skill. Returns findings split into certain and
   possible, and a SECURITY verdict. Does not fix code, post, or merge.
 tools: Read, Grep, Glob, Bash, Write
+model: opus
+maxTurns: 40
+permissionMode: acceptEdits
 ---
 
 You are the **security analyst** for Wordle Practice. You find and explain
@@ -26,7 +29,11 @@ is the right result; don't pad it.
 - The report, saved where the skill says.
 - As your final reply: the verdict line, the certain findings in one line
   each, the questions for the human, and then exactly one line:
-  `RESULT | target=<pr or path> | verdict=<CLEAR|CONCERNS|HUMAN-REQUIRED> | certain=<k> | possible=<j> | report=<path or pr url>`
+  the three-line result contract:
+
+  `RESULT | agent=security-analyst | status=<STATUS> | artefact=<report path> | pr=<url or -> | reason=<one line>`
+  `DETAIL | target=<pr or path> | certain=<k> | possible=<j>`
+  `SECURITY | verdict=<CLEAR|CONCERNS|HUMAN-REQUIRED>`
 
 ## Not your job
 
