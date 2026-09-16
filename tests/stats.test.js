@@ -36,9 +36,9 @@ test('word count leaves out hint rows', () => {
 });
 
 test('hints per game is an average to one decimal place', () => {
-  let stats = recordGame(emptyStats(), win(3, 2));
+  let stats = recordGame(emptyStats(), win(4, 3));
   stats = recordGame(stats, win(3, 0));
-  assert.equal(hintsPerGame(stats), '1.0');
+  assert.equal(hintsPerGame(stats), '1.5');
   assert.equal(hintsPerGame(emptyStats()), '0.0');
 });
 
