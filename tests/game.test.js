@@ -4,6 +4,8 @@ import {
   addLetter,
   canUseHint,
   gameSummary,
+  HINTS_PER_GAME,
+  hintsUsed,
   keyStates,
   newGame,
   quitGame,
@@ -114,26 +116,53 @@ describe('winning and losing', () => {
 });
 
 describe('hints', () => {
+  test('a new game starts with three hints (spec 3.7)', () => {
+    assert.equal(HINTS_PER_GAME, 3);
+    assert.equal(newGame('CRANE').hintsLeft, 3);
+  });
+
   test('a hint fills the current row, replacing typed letters', () => {
     const game = useHint(type(newGame('CRANE'), 'cr'), 'TRAIN');
     assert.equal(game.rows[0].word, 'TRAIN');
     assert.equal(game.rows[0].hint, true);
     assert.equal(game.current, '');
-    assert.equal(game.hintsLeft, 1);
+    assert.equal(game.hintsLeft, HINTS_PER_GAME - 1);
+    assert.equal(hintsUsed(game), 1);
   });
 
-  test('only two hints per game', () => {
+  test('each hint uses exactly one, counting down to zero', () => {
+    let game = newGame('CRANE');
+    const left = [];
+    for (const word of ['TRAIN', 'SLATE', 'PLACE']) {
+      game = useHint(game, word);
+      left.push(game.hintsLeft);
+    }
+    assert.deepEqual(left, [2, 1, 0]);
+    assert.equal(game.rows.length, 3);
+  });
+
+  test('only three hints per game', () => {
     let game = useHint(newGame('CRANE'), 'TRAIN');
     game = useHint(game, 'SLATE');
+    game = useHint(game, 'PLACE');
     assert.equal(game.hintsLeft, 0);
+    assert.equal(hintsUsed(game), HINTS_PER_GAME);
     assert.equal(canUseHint(game), false);
-    assert.equal(useHint(game, 'PLACE'), game);
+    assert.equal(useHint(game, 'MOIST'), game);
+  });
+
+  test('three hints leave three rows for guesses', () => {
+    let game = newGame('CRANE');
+    for (const word of ['TRAIN', 'SLATE', 'PLACE']) game = useHint(game, word);
+    game = guess(game, 'CRANE');
+    assert.equal(game.status, 'won');
+    assert.equal(winMessage(game.rows.length), 'Splendid');
   });
 
   test('no hint when only the last row is left', () => {
     let game = newGame('CRANE');
     for (let i = 0; i < 5; i++) game = guess(game, 'MOIST');
-    assert.equal(game.hintsLeft, 2);
+    assert.equal(game.hintsLeft, HINTS_PER_GAME);
     assert.equal(canUseHint(game), false);
   });
 

@@ -3,7 +3,7 @@ import { CORRECT, scoreGuess } from './score.js';
 
 export const WORD_LENGTH = 5;
 export const MAX_ROWS = 6;
-export const HINTS_PER_GAME = 2;
+export const HINTS_PER_GAME = 3;
 
 export const WIN_MESSAGES = ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'];
 
