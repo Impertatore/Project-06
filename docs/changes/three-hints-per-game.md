@@ -159,7 +159,7 @@ open question 1.
 5. An automated test shows a game that used three hints reports 3 hints in its
    summary, and that word count still counts submitted guesses only.
 6. An automated test shows "hints per game" is 1.5 after one game with 3 hints
-   and one with 0.
+   and one with 0. (Replaces criterion 48.)
 7. `npm test` exits 0, with every existing hint-word-choice test unchanged and
    passing. The rules for choosing a hint word are untouched.
 8. Reading the code: no number other than the hints-per-game count changes.
@@ -171,7 +171,7 @@ open question 1.
     (Replaces criterion 11.)
 11. Manual step: press "Hint" three times in one game. Three different words
     fill three rows, and the button reads "Hint (2)", "Hint (1)", "Hint (0)"
-    in turn, then is disabled and looks disabled.
+    in turn, then is disabled and looks disabled. (Replaces criterion 41.)
 12. Manual step: after "New Game", the grid and key colours are cleared and the
     button shows "Hint (3)". (Replaces criterion 35.)
 13. Manual step, known answer `CRANE`: guess `CRANK`, then press "Hint". The
@@ -257,3 +257,51 @@ open question 1.
    The spec is silent on a hint-count setting.
    [assumed: fixed at 3 for every game, no new setting.] Non-goals above assume
    this.
+
+## Decisions [decided-by-po]
+
+1. **Saved statistics across the change.** Leave old games in the "hints per
+   game" average; do nothing else (no reset prompt, no note). `[assumed]`
+   Spec 3.8 defines the average and is silent on what happens when the limit
+   that produces the per-game count changes; Section 4 of this change spec
+   already establishes no stored field changes meaning and no migration is
+   needed, so mixing the two limits in one average is the only outcome
+   consistent with "no migration required." Criteria 6 and 19 already assume
+   this and are unchanged.
+
+2. **Hints versus remaining guesses.** The hint button's disable rule stays
+   exactly as it is today: no hints left, only the last row left, or the game
+   has ended. No new minimum-guesses rule is added. `[assumed]`
+   Spec 3.7's disable rule (quoted in open question 2) does not mention a
+   minimum number of guess rows, and this change's own Non-goals (section 2)
+   already rule out "changing when the hint button is disabled." Adding a new
+   minimum would go beyond a change described only as "2 to 3." Criteria 3
+   and 11 already assume this and are unchanged.
+
+3. **Criteria that name two hints.** Replace criteria 41 and 48 outright,
+   rather than keeping them alongside the new ones. `[assumed]`
+   Criteria 41 and 48 describe a 2-hint game and a 1.0 average that only made
+   sense under the old limit; keeping them next to criteria that test 3 hints
+   and a 1.5 average would leave two acceptance criteria implying two
+   different hint limits are both current. The acceptance criteria above
+   (criteria 6 and 11) are now marked "(Replaces criterion 48.)" and
+   "(Replaces criterion 41.)" respectively, matching how criteria 10, 12 and
+   13 already mark their replacements.
+
+4. **Help text wording.** Change only the number in the Help panel's hints
+   sentence; leave the rest of the wording as it is. `[assumed]`
+   Spec 3.11 does not fix the Help text's wording, and this change's own
+   Intent (section 1) already states "Only the number the player starts with,
+   the numbers shown in the button and help text, and the acceptance criteria
+   that name '2' are affected." Rewriting the sentence further would be a
+   wording change this input never asked for. Criterion 17 already assumes
+   this and is unchanged.
+
+5. **Is 3 final?** Fix the hint count at 3 for every game. Do not add a
+   setting or vary it by hard mode or difficulty. `[assumed]`
+   Spec 3.10 lists exactly three Settings switches ("Hard mode", "Dark mode",
+   "High contrast") and is silent on a hint-count control; the input for this
+   change is "change the number of hints per game from 2 to 3," a single
+   fixed number, not a request for configurability. The change's own
+   Non-goals (section 2) already assume this. No acceptance criterion needs
+   to change.
