@@ -14,6 +14,7 @@ import {
   WARNINGS,
   winMessage,
 } from '../src/logic/game.js';
+import { emptyStats, hintsPerGame, recordGame } from '../src/logic/stats.js';
 
 const WORDS = new Set(['CRANE', 'SLATE', 'TRAIN', 'PLACE', 'BRINE', 'BRAKE', 'PRANK', 'MOIST', 'FIBER', 'FIBRE']);
 const isValid = (w) => WORDS.has(w);
@@ -160,6 +161,16 @@ describe('hints', () => {
     assert.equal(summary.guesses, 1);
     assert.equal(summary.rowsUsed, 4);
     assert.equal(winMessage(summary.rowsUsed), 'Splendid');
+  });
+
+  test('hints per game reflects the new maximum: three hints and none average to 1.5', () => {
+    let game = useHint(newGame('CRANE'), 'TRAIN');
+    game = useHint(game, 'SLATE');
+    game = useHint(game, 'PRANK');
+    game = guess(game, 'CRANE');
+    let stats = recordGame(emptyStats(), gameSummary(game));
+    stats = recordGame(stats, { result: 'won', rowsUsed: 1, guesses: 1, hints: 0 });
+    assert.equal(hintsPerGame(stats), '1.5');
   });
 
   test('no hint when only the last row is left', () => {
